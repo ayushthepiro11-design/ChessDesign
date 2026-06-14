@@ -1,0 +1,358 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .dark body {
+    @apply bg-canvas-dark text-ink-dark;
+  }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent/40 ring-offset-2 ring-offset-canvas;
+  }
+  .dark *:focus-visible {
+    @apply ring-offset-canvas-dark;
+  }
+  * { 
+    scrollbar-width: thin; 
+    scrollbar-color: rgba(121, 118, 115, 0.3) transparent; 
+  }
+  .dark * { 
+    scrollbar-color: rgba(163, 161, 159, 0.2) transparent; 
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { 
+    background-color: rgba(121, 118, 115, 0.3); 
+    border-radius: 9999px; 
+  }
+  .dark ::-webkit-scrollbar-thumb { 
+    background-color: rgba(163, 161, 159, 0.2); 
+  }
+  ::-webkit-scrollbar-thumb:hover { 
+    background-color: rgba(121, 118, 115, 0.5); 
+  }
+  .dark ::-webkit-scrollbar-thumb:hover { 
+    background-color: rgba(163, 161, 159, 0.4); 
+  }
+}
+
+@layer components {
+  .clicky {
+    @apply transition-all duration-150 ease-out;
+  }
+  .clicky:active {
+    @apply scale-[0.97];
+  }
+
+  .boing {
+    @apply transition-all duration-200 ease-out;
+  }
+  .boing:active {
+    @apply scale-[0.96];
+  }
+
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2
+           bg-accent text-white
+           hover:brightness-105 active:scale-[0.98]
+           border-b-[3px] border-[#68953C] dark:border-[#537730]
+           px-4 py-2.5 text-sm font-bold uppercase tracking-wider rounded-lg
+           transition-all duration-150 shadow-sm;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           bg-canvas text-ink border border-line
+           dark:bg-canvas-dark dark:text-ink-dark dark:border-line-dark
+           hover:bg-chip dark:hover:bg-chip-dark
+           hover:border-muted/40 dark:hover:border-muted-dark/40
+           px-3.5 py-2 text-sm font-semibold rounded-lg
+           transition-all duration-150;
+  }
+  .btn-ghost:active {
+    @apply scale-95;
+  }
+
+  .btn-icon {
+    @apply inline-flex items-center justify-center gap-2
+           bg-canvas text-ink border border-line
+           dark:bg-canvas-dark dark:text-ink-dark dark:border-line-dark
+           hover:bg-chip dark:hover:bg-chip-dark hover:border-muted/40
+           px-3 py-2.5 text-sm font-semibold rounded-lg
+           transition-all duration-150;
+  }
+  .btn-icon:active {
+    @apply scale-95;
+  }
+
+  .field {
+    @apply w-full bg-canvas text-ink placeholder:text-muted/60
+           dark:bg-canvas-dark dark:text-ink-dark dark:placeholder:text-muted-dark/60
+           border border-line dark:border-line-dark
+           px-3.5 py-2.5 text-sm font-sans rounded-lg
+           focus:border-accent/80 focus:ring-2 focus:ring-accent/15
+           transition-all duration-150 outline-none;
+  }
+
+  .skeleton {
+    @apply bg-line dark:bg-line-dark;
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  .dark .skeleton {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
+  .boop {
+    @apply transition-[transform] duration-200 ease-out;
+  }
+  .boop:hover {
+    @apply -translate-y-0.5;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Easings & shared CSS variables                                      */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --ease-boing: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-pop: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --pulse-start: rgba(255, 107, 53, 0);
+  --pulse-end: rgba(255, 107, 53, 0.15);
+  --dot-color: rgba(224, 224, 224, 0.08);
+}
+.dark {
+  --pulse-start: rgba(255, 107, 53, 0);
+  --pulse-end: rgba(255, 107, 53, 0.22);
+  --dot-color: rgba(224, 224, 224, 0.05);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Keyframes — all stepped for pixel feel                              */
+/* ------------------------------------------------------------------ */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+@keyframes idlePulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes successPulse {
+  0% { transform: scale(0.96); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0.2); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes iconSwap {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes boing {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-8px); }
+  60% { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes punchIn {
+  0% { transform: scale(0.5) translateY(4px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes flameFlicker {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.08); filter: brightness(1.1); }
+}
+
+@keyframes driftFloat {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(8px, -15px); }
+  50% { transform: translate(-10px, -30px); }
+  75% { transform: translate(-15px, -15px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes orb1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, 20px); }
+}
+@keyframes orb2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-30px, 15px); }
+}
+@keyframes orb3 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -20px); }
+}
+@keyframes orb4 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-20px, -10px); }
+}
+
+@keyframes premiumShine {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes barPop {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 1px); }
+  100% { transform: translate(0); }
+}
+
+@keyframes pixelFlicker {
+  0%, 100% { opacity: 1; }
+  10% { opacity: 0.8; }
+  30% { opacity: 1; }
+  50% { opacity: 0.9; }
+  70% { opacity: 1; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Respect user motion preferences                                     */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Clean export styling for html-to-image (foreignObject)             */
+/* ------------------------------------------------------------------ */
+
+#chesscard-canvas.exporting {
+  perspective: none !important;
+  transform: none !important;
+}
+
+#chesscard-canvas.exporting > div {
+  transform: none !important;
+  transform-style: flat !important;
+  transition: none !important;
+}
+
+#chesscard-canvas.exporting *,
+#chesscard-canvas.exporting *::before,
+#chesscard-canvas.exporting *::after {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+  transform-style: flat !important;
+  will-change: auto !important;
+}
+
+#chesscard-canvas.exporting [aria-hidden],
+#chesscard-canvas.exporting [aria-hidden="true"] {
+  transform: none !important;
+}
+
+#chesscard-canvas.exporting > button {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  #chesscard-canvas {
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+.vs-glow {
+  animation: vsPulse 2s ease-in-out infinite;
+}
+
+@keyframes vsPulse {
+  0%, 100% { border-color: #FA463A; }
+  50% { border-color: #F2B827; }
+}
