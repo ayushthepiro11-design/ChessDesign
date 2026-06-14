@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Bolt, Lock, Logo, Moon, Search, Sun } from './Icons'
+import { Bolt, Logo, Moon, Search, Sun } from './Icons'
 
 /**
  * Sidebar — the left control panel. Cartoonish-leaning: chunky 3D buttons,
@@ -372,30 +372,7 @@ export default function Sidebar({
           </form>
         )}
 
-        <div className="h-[1px] bg-line dark:bg-line-dark -mx-5 sm:-mx-6 mt-1 shrink-0" />
 
-        {/* Premium upsell */}
-        <div className="group relative overflow-hidden rounded-xl border border-line dark:border-line-dark bg-canvas dark:bg-canvas-dark transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
-          <div className="relative p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-500">
-                <Lock className="h-3 w-3" /> Premium
-              </span>
-              <span className="text-[11px] text-muted dark:text-muted-dark font-semibold">$2 one-time</span>
-            </div>
-            <p className="text-sm font-bold leading-snug">Unlock premium themes</p>
-            <p className="text-xs text-muted dark:text-muted-dark leading-relaxed">
-              Animated layouts, shareable OG images, and 6 hand-crafted themes — Midnight, Sakura, Royal, Mono, Chess.com Dark, Vintage.
-            </p>
-            <button
-              type="button"
-              disabled
-              className="btn-ghost w-full mt-1 text-[12px] py-1.5 opacity-60 cursor-not-allowed"
-            >
-              Coming soon
-            </button>
-          </div>
-        </div>
       </div>
 
       <div className="px-5 sm:px-6 py-4 mt-auto border-t border-line dark:border-line-dark text-[11px] text-muted dark:text-muted-dark flex items-center justify-between font-sans">
