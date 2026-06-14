@@ -418,13 +418,6 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const mascotState = isLoading
-    ? 'loading'
-    : justGenerated
-    ? 'success'
-    : error
-    ? 'error'
-    : 'idle'
 
   return (
     <div className="relative min-h-screen overflow-x-hidden flex flex-col lg:flex-row bg-canvas dark:bg-canvas-dark text-ink dark:text-ink-dark">
