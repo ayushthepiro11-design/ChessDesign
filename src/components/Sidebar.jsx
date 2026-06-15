@@ -22,6 +22,7 @@ export default function Sidebar({
   justGenerated,
   theme,
   toggleTheme,
+  isOpen = true,
 }) {
   const id = useId()
   const [submitAttempted, setSubmitAttempted] = useState(false)
@@ -76,7 +77,14 @@ export default function Sidebar({
   }, [scheduleCleanup])
 
   return (
-    <aside className="w-full lg:w-[320px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-line dark:border-line-dark bg-chip/40 dark:bg-chip-dark/20 backdrop-blur lg:h-screen lg:sticky lg:top-0 z-30 flex flex-col overflow-y-auto scrollbar-thin">
+    <aside
+      className={[
+        'z-30 flex flex-col overflow-y-auto scrollbar-thin transition-all duration-300 ease-in-out',
+        isOpen
+          ? 'w-full lg:w-[320px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-line dark:border-line-dark bg-chip/40 dark:bg-chip-dark/20 backdrop-blur lg:h-screen lg:sticky lg:top-0 opacity-100'
+          : 'w-0 h-0 lg:w-0 lg:h-screen opacity-0 border-b-0 lg:border-r-0 overflow-hidden pointer-events-none',
+      ].join(' ')}
+    >
       <div className="flex-1 flex flex-col p-5 sm:p-6 gap-6">
         {/* Top: logo + theme toggle */}
         <div className="flex items-center justify-between min-h-[40px]">

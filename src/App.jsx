@@ -9,6 +9,7 @@ import ActionBar from './components/ActionBar'
 import BackgroundFX from './components/BackgroundFX'
 import Confetti from './components/Confetti'
 import { fetchPlayerStats, getDemoStats } from './lib/api'
+import { SidebarIcon } from './components/Icons'
 
 // Lazy-load heavy components — only needed after data fetching completes
 const StatCard = lazy(() => import('./components/StatCard'))
@@ -92,6 +93,7 @@ function writeUrlParams(platform, username, isCompare, platform2, username2) {
 export default function App() {
   // ---- State ----
   const urlParams = readUrlParams()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [platform, setPlatform] = useState(urlParams?.platform || 'chess.com')
   const [username, setUsername] = useState(urlParams?.username || '')
   const [data, setData] = useState(null)
@@ -446,9 +448,10 @@ export default function App() {
         justGenerated={justGenerated}
         theme={theme}
         toggleTheme={toggleTheme}
+        isOpen={isSidebarOpen}
       />
 
-      <main className="relative flex-1 min-w-0">
+      <main className="relative flex-1 min-w-0 transition-all duration-300 ease-in-out">
         <TopBar
           platform={platform}
           username={data?.profile?.username || username}
@@ -459,6 +462,8 @@ export default function App() {
           username2={data2?.profile?.username || username2}
           hasData2={!!data2}
           isCompare={isCompare}
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
         />
 
         <div className="px-5 sm:px-8 lg:px-12 py-8 lg:py-12">
@@ -585,10 +590,31 @@ export default function App() {
   )
 }
 
-const TopBar = React.memo(function TopBar({ platform, username, hasData, source, latencyMs, platform2, username2, hasData2, isCompare }) {
+const TopBar = React.memo(function TopBar({
+  platform,
+  username,
+  hasData,
+  source,
+  latencyMs,
+  platform2,
+  username2,
+  hasData2,
+  isCompare,
+  isSidebarOpen,
+  setIsSidebarOpen,
+}) {
   return (
     <div className="sticky top-0 z-20 bg-canvas/80 dark:bg-canvas-dark/80 backdrop-blur border-b border-line dark:border-line-dark">
-      <div className="px-5 sm:px-8 lg:px-12 h-12 min-h-[48px] flex items-center gap-3 text-[12.5px]">
+      <div className="px-4 sm:px-6 lg:px-8 h-12 min-h-[48px] flex items-center gap-3 text-[12.5px]">
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-1 rounded hover:bg-chip dark:hover:bg-chip-dark text-muted hover:text-ink dark:hover:text-ink-dark transition-all duration-150 shrink-0"
+          aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <SidebarIcon className="h-4.5 w-4.5" />
+        </button>
         <span className="text-muted dark:text-muted-dark font-sans font-bold">chesscard</span>
         <span className="text-line dark:text-line-dark">/</span>
         {!isCompare ? (
@@ -635,9 +661,6 @@ const TopBar = React.memo(function TopBar({ platform, username, hasData, source,
               demo data
             </span>
           )}
-          <kbd className="hidden md:inline-flex items-center gap-1 rounded-md border border-line dark:border-line-dark bg-chip dark:bg-chip-dark px-1.5 h-5 text-[10.5px] font-mono font-semibold">
-            ⌘ K
-          </kbd>
         </div>
       </div>
     </div>
