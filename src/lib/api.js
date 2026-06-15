@@ -1,5 +1,8 @@
-// Chess.com + Lichess API integration with "Ulta Pro Max" resilience.
-// Integrates RequestQueue, PersistentCache, fetchWithRetry, and validateAndNormalize methods.
+/**
+ * @fileoverview API integration modules for Chess.com and Lichess.
+ * Implements a resilient request orchestration layer using queueing, retries,
+ * failover proxies, and persistent storage caching.
+ */
 
 import {
   computeInsights,
@@ -20,8 +23,14 @@ import {
 const CACHE_TTL = 5 * 60 * 1000
 const RECENT_GAMES_LIMIT = 400
 
-// Initialize request queue to throttle requests and persistent cache
+/**
+ * Throttles outbound connections to avoid platform rate limiting.
+ */
 const requestQueue = new RequestQueue({ maxConcurrency: 3, minDelay: 100 })
+
+/**
+ * Persists data payloads in local storage with automatic TTL invalidation.
+ */
 const persistentCache = new PersistentCache({ prefix: 'chesscard_api_', ttl: CACHE_TTL })
 
 export const COUNTRY_NAMES = {
@@ -46,7 +55,9 @@ const PROXIES = [
   (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
 ]
 
-// ---------- Chess.com ----------
+/* ============================================================================
+ * Chess.com API Client Implementation
+ * ============================================================================ */
 
 const CC_FORMAT_ORDER = ['chess_rapid', 'chess_blitz', 'chess_bullet', 'chess_daily', 'chess_960']
 const CC_FORMAT_NAMES = {
@@ -57,13 +68,23 @@ const CC_FORMAT_NAMES = {
   chess_960: 'Chess960',
 }
 
+/**
+ * Retrieves player profile, statistics, and game logs from the Chess.com API.
+ * Uses a dynamic month-by-month lookback generator to crawl game archives.
+ *
+ * @param {string} username - The Chess.com identifier to retrieve.
+ * @param {Function} [onProgress] - Optional progress notification callback.
+ * @param {boolean} [force] - Disregard cache and force remote fetch if true.
+ * @param {AbortSignal} [signal] - Optional signal to terminate requests.
+ * @returns {Promise<Object>} The normalized profile and analytical data.
+ */
 async function fetchChessCom(username, onProgress, force, signal) {
   const clean = username.trim().toLowerCase()
   if (!clean) throw new Error('Empty username')
 
   const calls = []
 
-  // 1. Profile
+  // Fetch user profile information.
   const profileUrl = `https://api.chess.com/pub/player/${encodeURIComponent(clean)}`
   onProgress?.({ label: 'profile', status: 'fetching', url: profileUrl })
   const profileRes = await requestQueue.add(() => fetchWithRetry(profileUrl, { signal, proxies: PROXIES }))
@@ -73,7 +94,7 @@ async function fetchChessCom(username, onProgress, force, signal) {
   calls.push({ label: 'profile', url: profileRes.url, via: profileRes.url.includes('chess.com') ? 'direct' : 'proxy', latencyMs: 0 })
   onProgress?.({ label: 'profile', status: 'ok', url: profileUrl, latencyMs: 0, via: 'direct' })
 
-  // 2. Stats
+  // Fetch platform rating statistics.
   const statsUrl = `https://api.chess.com/pub/player/${encodeURIComponent(clean)}/stats`
   onProgress?.({ label: 'stats', status: 'fetching', url: statsUrl })
   const statsRes = await requestQueue.add(() => fetchWithRetry(statsUrl, { signal, proxies: PROXIES }))
@@ -82,7 +103,8 @@ async function fetchChessCom(username, onProgress, force, signal) {
   calls.push({ label: 'stats', url: statsRes.url, via: statsRes.url.includes('chess.com') ? 'direct' : 'proxy', latencyMs: 0 })
   onProgress?.({ label: 'stats', status: 'ok', url: statsUrl, latencyMs: 0, via: 'direct' })
 
-  // 3. Dynamic month-by-month lookback
+  // Fetch recent game archives. Crawls backwards month-by-month until
+  // either the lookback limit is reached or we reach the player's join date.
   let topOpening = null
   let topOpeningGames = null
   let recentForm = []
@@ -126,7 +148,7 @@ async function fetchChessCom(username, onProgress, force, signal) {
       }
     }
 
-    // Sort games descending and validate/normalize
+    // Order archives chronologically descending and normalize payload shapes.
     rawGames.sort((a, b) => (b.end_time || 0) - (a.end_time || 0))
     const trimmedRaw = rawGames.slice(0, RECENT_GAMES_LIMIT * 2)
 
@@ -161,7 +183,7 @@ async function fetchChessCom(username, onProgress, force, signal) {
     console.warn('[ChessCard] Error processing Chess.com games:', err)
   }
 
-  // 4. Build per-format breakdown
+  // Compile structured records categorized by time control format.
   const perFormat = []
   for (const key of CC_FORMAT_ORDER) {
     const s = stats[key]
@@ -210,6 +232,13 @@ async function fetchChessCom(username, onProgress, force, signal) {
   }
 }
 
+/**
+ * Evaluates the current consecutive result sequence (wins or losses) from
+ * a chronological array of game outcomes.
+ *
+ * @param {string[]} form - Chronological list of game result codes.
+ * @returns {{sign: string, count: number}} Current streak direction and length.
+ */
 function deriveStreakFromForm(form) {
   if (!form?.length) return { sign: 'W', count: 0 }
   const first = form[0]
@@ -221,7 +250,9 @@ function deriveStreakFromForm(form) {
   return { sign: first, count }
 }
 
-// ---------- Lichess ----------
+/* ============================================================================
+ * Lichess API Client Implementation
+ * ============================================================================ */
 
 const LI_PERF_ORDER = ['rapid', 'blitz', 'bullet', 'classical', 'correspondence', 'ultraBullet']
 const LI_PERF_NAMES = {
@@ -233,13 +264,23 @@ const LI_PERF_NAMES = {
   ultraBullet: 'UltraBullet',
 }
 
+/**
+ * Retrieves player profile and game archives from the Lichess API.
+ * Normalizes results to map against uniform downstream presentation structures.
+ *
+ * @param {string} username - The Lichess user identifier.
+ * @param {Function} [onProgress] - Optional progress notification callback.
+ * @param {boolean} [force] - Disregard cache and force remote fetch if true.
+ * @param {AbortSignal} [signal] - Optional signal to terminate requests.
+ * @returns {Promise<Object>} The normalized profile and analytical data.
+ */
 async function fetchLichess(username, onProgress, force, signal) {
   const clean = username.trim().toLowerCase()
   if (!clean) throw new Error('Empty username')
 
   const calls = []
 
-  // 1. Profile
+  // Fetch user profile information.
   const profileUrl = `https://lichess.org/api/user/${encodeURIComponent(clean)}`
   onProgress?.({ label: 'profile', status: 'fetching', url: profileUrl })
   const userCall = await requestQueue.add(() => fetchWithRetry(profileUrl, {
@@ -253,7 +294,7 @@ async function fetchLichess(username, onProgress, force, signal) {
   calls.push({ label: 'profile', url: userCall.url, via: userCall.url?.includes('lichess.org') ? 'direct' : 'proxy', latencyMs: 0 })
   onProgress?.({ label: 'profile', status: 'ok', url: profileUrl, latencyMs: 0, via: 'direct' })
 
-  // 2. Recent games
+  // Fetch recent game logs using ndjson streaming API.
   let topOpening = null
   let topOpeningGames = null
   let recentForm = []
@@ -301,14 +342,14 @@ async function fetchLichess(username, onProgress, force, signal) {
     console.warn('[ChessCard] Error processing Lichess games:', err)
   }
 
-  // 3. Build per-format breakdown
+  // Parse format metrics and estimate performance outcomes.
   const perfs = userJson.perfs || {}
   const perFormat = []
   for (const key of LI_PERF_ORDER) {
     const p = perfs[key]
     if (!p?.rating) continue
 
-    // Count outcomes from normalizedGames for this format
+    // Derive performance statistics for this specific variation.
     let sampleWins = 0
     let sampleLosses = 0
     let sampleDraws = 0
@@ -337,7 +378,7 @@ async function fetchLichess(username, onProgress, force, signal) {
       loss = Math.round(totalGamesForPerf * lossRate)
       draw = totalGamesForPerf - win - loss
     } else {
-      // Fallback to global user stats if no games for this variant are in the sample
+      // Revert to global ratios if local archives don't contain games of this variant.
       const globalWins = userJson.count?.win || 0
       const globalLosses = userJson.count?.loss || 0
       const globalDraws = userJson.count?.draw || 0
@@ -352,7 +393,7 @@ async function fetchLichess(username, onProgress, force, signal) {
       draw = totalGamesForPerf - win - loss
     }
 
-    // Ensure no negative values due to rounding errors
+    // Bound value to avoid rounding anomalies.
     if (draw < 0) {
       draw = 0
     }
@@ -368,7 +409,7 @@ async function fetchLichess(username, onProgress, force, signal) {
   }
 
 
-  // 4. Pick primary format
+  // Select the user's highest rated format as primary.
   const primary = perFormat.slice().sort((a, b) => b.rating - a.rating)[0]
   if (!primary) throw new Error('No stats available')
 
@@ -410,8 +451,21 @@ async function fetchLichess(username, onProgress, force, signal) {
   }
 }
 
-// ---------- Public entry ----------
+/* ============================================================================
+ * Public Orchestration Layer
+ * ============================================================================ */
 
+/**
+ * Retrieves player stats from cache or retrieves them from the remote APIs.
+ *
+ * @param {Object} params - Request options.
+ * @param {'chess.com'|'lichess'} params.platform - Target platform.
+ * @param {string} params.username - Account username.
+ * @param {Function} [params.onProgress] - Callback for request stage updates.
+ * @param {boolean} [params.force=false] - If true, bypasses local storage cache.
+ * @param {AbortSignal} [params.signal] - Signal to cancel active fetches.
+ * @returns {Promise<Object>} Operation outcome container.
+ */
 export async function fetchPlayerStats({ platform, username, onProgress, force = false, signal } = {}) {
   const clean = (username || '').trim().toLowerCase()
   if (!clean) {
@@ -465,12 +519,18 @@ export async function fetchPlayerStats({ platform, username, onProgress, force =
   }
 }
 
-export function clearCache() {
-  persistentCache.clear()
-}
 
-// ---------- Demo fallback ----------
 
+/* ============================================================================
+ * Demonstration Fallback Profiles
+ * ============================================================================ */
+
+/**
+ * Returns a complete high-fidelity mockup profile for demonstration purposes.
+ *
+ * @param {'chess.com'|'lichess'} platform - Platform schema style to match.
+ * @returns {Object} Mock normalized player payload.
+ */
 export function getDemoStats(platform) {
   const ts = Date.now()
   if (platform === 'lichess') {

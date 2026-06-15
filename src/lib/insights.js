@@ -1,9 +1,8 @@
-// Insights — derive "signature" analytics from a normalized game log.
-//
-// Both Chess.com and Lichess produce wildly different game shapes, so each
-// fetcher normalizes to a single shape (`NormalizedGame`) and then calls
-// `computeInsights` to derive all the card's derived stats. The downstream
-// components only know about this normalized shape.
+/**
+ * @fileoverview Derives signature analytical insights from a normalized chess match log.
+ * Handles performance metrics split, first-move classifications, archetype assignment,
+ * and game duration distribution analysis.
+ */
 
 /**
  * @typedef {Object} NormalizedGame
@@ -110,9 +109,11 @@ const LENGTH_BUCKETS = [
 ]
 
 /**
- * Map a Lichess-style puzzle rating to a "top X%" label. Roughly
- * approximates Lichess's published distribution so the percentile feels
- * honest without us pulling real data.
+ * Maps a Lichess puzzle rating to a synthetic percentile estimate.
+ * Approximates platform distribution profiles without requiring real-time global queries.
+ *
+ * @param {number} rating - The player's current puzzle rating.
+ * @returns {?number} Estimated percentile value.
  */
 function puzzleRatingPercentile(rating) {
   if (!Number.isFinite(rating)) return null
@@ -127,7 +128,10 @@ function puzzleRatingPercentile(rating) {
 }
 
 /**
- * Classify a SAN first move into a small set of buckets for the chart.
+ * Classifies standard algebraic notation (SAN) moves into standardized opening groups.
+ *
+ * @param {string} san - The first move of the match.
+ * @returns {string} Opening move group identifier.
  */
 export function classifyFirstMove(san) {
   if (!san) return 'other'
@@ -137,7 +141,7 @@ export function classifyFirstMove(san) {
   if (m === 'c4') return 'c4'
   if (m === 'nf3') return 'Nf3'
   if (m === 'f4') return 'f4'
-  // Flank openings: b3, g3, a3, h3, Na3, Nh3, etc.
+  // Classify flank openings (e.g., b3, g3, a3, h3, Na3, Nh3).
   if (m === 'b3' || m === 'g3' || m === 'a3' || m === 'h3' || m.startsWith('na') || m.startsWith('nh')) return 'flank'
   return 'other'
 }
@@ -147,9 +151,8 @@ function emptySplit() {
 }
 
 function deriveArchetype({ winRate, drawRate, bulletRatio, fastRatio, avgLength, totalGames, puzzleRating, beatingOdds, colorSplit, signatureOpening }) {
-  // Priority-ordered: most specific / most distinctive traits win.
-  // We keep each rule's threshold on the conservative side so casual
-  // players with a few games don't get mislabelled.
+  // Style rules are evaluated in descending priority order of specificity.
+  // Threshold limits are bounded conservatively to avoid style misclassification.
 
   if (beatingOdds && beatingOdds.winRate >= 0.55 && beatingOdds.games >= 4) {
     return {
@@ -324,9 +327,7 @@ export function computeInsights(games, opts = {}) {
         agg.oppSamples++
       }
     }
-    // Per-opponent aggregation. We key by username when available so a
-    // single strong opponent shows up as a single record even if we faced
-    // them at different rating snapshots.
+    // Group records by opponent to aggregate overall matchup records against specific players.
     if (g.opponentUsername) {
       const key = g.opponentUsername.toLowerCase()
       let opp = opponentAgg.get(key)
@@ -370,7 +371,7 @@ export function computeInsights(games, opts = {}) {
     if (g.speed === 'bullet' || g.speed === 'ultraBullet') bulletCount++
     if (g.speed === 'bullet' || g.speed === 'blitz' || g.speed === 'ultraBullet') fastCount++
 
-    // Hour-of-day from timestamp
+    // Compute hour-of-day execution frequency.
     if (Number.isFinite(g.ts)) {
       const h = new Date(g.ts).getUTCHours()
       hourlyPlay[h]++
@@ -380,7 +381,7 @@ export function computeInsights(games, opts = {}) {
       }
     }
 
-    // Beating the odds = games where opponent was rated higher than us
+    // Track outcomes against higher-rated opponents.
     if (Number.isFinite(g.opponentRating) && Number.isFinite(g.myRating) && g.opponentRating > g.myRating) {
       beating.games++
       if (g.result === 'W') beating.wins++
@@ -390,7 +391,7 @@ export function computeInsights(games, opts = {}) {
       beating.deltaSamples++
     }
 
-    // Rating history — collect (ts, rating) pairs for the line chart
+    // Collect chronological rating records for performance graphing.
     if (Number.isFinite(g.ts) && Number.isFinite(g.myRating)) {
       ratingHistory.push({ ts: g.ts, rating: g.myRating })
     }
@@ -416,9 +417,8 @@ export function computeInsights(games, opts = {}) {
     .filter((m) => m.count > 0)
     .sort((a, b) => b.count - a.count)
 
-  // Signature opening = best WR over at least 5 games. If none qualifies,
-  // we fall back to the most-played opening with 3+ games for a softer
-  // signal — keeps the card interesting for casual users with thin data.
+  // Identify opening with highest win rate (min. 5 games).
+  // Fall back to most frequently played opening (min. 3 games) if threshold is unmet.
   let signatureOpening = null
   for (const agg of openingAgg.values()) {
     if (agg.games >= 5) {
@@ -457,7 +457,7 @@ export function computeInsights(games, opts = {}) {
     if (fallback) signatureOpening = fallback
   }
 
-  // Longest streak — sort by ts ascending (oldest first) and walk.
+  // Calculate streaks chronologically.
   const sorted = sample.filter((g) => Number.isFinite(g.ts)).slice().sort((a, b) => a.ts - b.ts)
   let longestW = 0
   let longestL = 0
@@ -505,8 +505,7 @@ export function computeInsights(games, opts = {}) {
     signatureOpening,
   })
 
-  // Toughest opponent = whoever has the highest peak rating we've seen.
-  // Tied with the username we saw on the strongest game.
+  // Locate the opponent with the highest rating record.
   let toughestOpponent = null
   if (highestOpponentUsername) {
     const opp = opponentAgg.get(highestOpponentUsername.toLowerCase())
@@ -527,7 +526,7 @@ export function computeInsights(games, opts = {}) {
     }
   }
 
-  // Puzzle percentile (Lichess only)
+  // Calculate puzzle percentile estimation.
   const puzzleRating = opts.puzzleRating || null
   const puzzlePercentile = puzzleRating ? puzzleRatingPercentile(puzzleRating) : null
 
@@ -555,37 +554,32 @@ export function computeInsights(games, opts = {}) {
  */
 export function extractFirstMoveFromPgn(pgn) {
   if (!pgn) return null
-  // PGN headers end with a blank line, then moves begin with "1. <san>".
-  // We just need the first SAN token after any "1." marker.
+  // Extract the first move token following the opening game metadata header.
   const m = /(?:^|\s)1\.\s*(\S+)/.exec(pgn)
   return m ? m[1] : null
 }
 
 /**
- * Roughly count fullmoves in a PGN. Counts unique "N." tokens.
+ * Approximates fullmove count from a raw PGN.
+ * Evaluates move section tokens only to avoid header content mismatches.
  *
- * IMPORTANT: this must operate ONLY on the moves section, not the
- * bracketed header block. The PGN `[Date "2024.01.15"]` header contains
- * `2024.` which a naive regex would mistake for move number 2024.
- * @param {string} pgn
- * @returns {number}
+ * @param {string} pgn - Raw PGN text data.
+ * @returns {number} Fullmove count.
  */
 export function countPgnFullmoves(pgn) {
   if (!pgn) return 0
-  // Strip the header block. Headers are `[...]` lines; everything after the
-  // first blank line is the moves section.
+  // Isolate move logs by stripping metadata bracket headers.
   let moves = pgn
   const headerEnd = pgn.indexOf('\n\n')
   if (headerEnd >= 0) {
     moves = pgn.slice(headerEnd + 2)
   } else {
-    // No blank-line separator (rare) — drop any leading `[...]` lines.
+    // Fallback: strip leading header brackets if separator is absent.
     const lines = pgn.split('\n')
     const start = lines.findIndex((l) => !l.trim().startsWith('['))
     if (start > 0) moves = lines.slice(start).join('\n')
   }
-  // Strip curly-brace comments which may contain numbers (e.g. "{2.5 hours}")
-  // that would be falsely matched as move numbers.
+  // Remove brace comments to avoid falsifying move count parsing.
   moves = moves.replace(/\{[^}]*\}/g, '')
   let max = 0
   const re = /(\d+)\.{1,3}/g

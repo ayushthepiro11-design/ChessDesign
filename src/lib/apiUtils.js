@@ -1,14 +1,14 @@
 /**
- * Chesscard "Ulta Pro Max" API Resilience and Storage Utilities.
- * Combines RequestQueue, PersistentCache, fetchWithRetry, fetchWithTimeout,
- * error normalization, data validation, and Chess.com dynamic month-by-month lookback generator.
+ * @fileoverview Network resilience infrastructure and profile/game validation schemas.
+ * Includes concurrency-controlled RequestQueue, PersistentCache managers,
+ * retry-with-backoff fetch engines, and dynamic monthly crawl utilities.
  */
 
 import { COUNTRY_NAMES } from './api.js'
 
-// ============================================================================
-// 1. Storage & Memory Fallbacks
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 1. Storage & Memory Fallbacks
+ * ---------------------------------------------------------------------------- */
 
 class MemoryStorage {
   constructor() {
@@ -36,10 +36,13 @@ class MemoryStorage {
   }
 }
 
-// ============================================================================
-// 2. Custom Errors & Normalization
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 2. Custom Errors & Normalization
+ * ---------------------------------------------------------------------------- */
 
+/**
+ * Custom error class representing API resilience and network failures.
+ */
 export class ChessResilienceError extends Error {
   constructor(message, options = {}) {
     super(message);
@@ -57,6 +60,14 @@ export class ChessResilienceError extends Error {
 
 
 
+/**
+ * Normalizes diverse HTTP and network errors into standard ChessResilienceError shapes.
+ *
+ * @param {any} error - Raw error object, Response, or string.
+ * @param {string} platform - Target platform (e.g. 'chess.com', 'lichess').
+ * @param {string} username - User account identifier.
+ * @returns {Promise<ChessResilienceError>} The normalized error instance.
+ */
 export async function normalizeError(error, platform, username) {
   const cleanPlatform = (platform || 'unknown').toLowerCase();
   const cleanUsername = (username || '').trim();
@@ -165,10 +176,14 @@ export async function normalizeError(error, platform, username) {
   });
 }
 
-// ============================================================================
-// 3. Concurrency Queuing
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 3. Concurrency Queuing
+ * ---------------------------------------------------------------------------- */
 
+/**
+ * Orchestrates tasks in a concurrency-limited execution queue.
+ * Adds artificial spacing between requests to minimize API rate limit bans.
+ */
 export class RequestQueue {
   constructor(options = {}) {
     this.maxConcurrency = typeof options.maxConcurrency === 'number' ? options.maxConcurrency : 3;
@@ -275,15 +290,19 @@ export class RequestQueue {
   }
 }
 
-// ============================================================================
-// 4. Persistent Cache Manager
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 4. Persistent Cache Manager
+ * ---------------------------------------------------------------------------- */
 
+/**
+ * Manages key-value serialization for network caches.
+ * Integrates storage fallback to memory if local storage is disabled.
+ */
 export class PersistentCache {
   constructor(options = {}) {
     this.options = {
       storageType: 'local',
-      ttl: 5 * 60 * 1000, // 5 min
+      ttl: 5 * 60 * 1000, // 5 minutes TTL
       prefix: 'pcache_',
       maxEntries: Infinity,
       ...options
@@ -497,30 +516,11 @@ export class PersistentCache {
   }
 }
 
-// ============================================================================
-// 5. Network Resilient Fetching & Abort signal merging
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 5. Network Resilient Fetching
+ * ---------------------------------------------------------------------------- */
 
-export function mergeAbortSignals(...signals) {
-  const activeSignals = signals.filter(Boolean);
-  if (activeSignals.length === 0) return new AbortController().signal;
-  if (activeSignals.length === 1) return activeSignals[0];
-  const preAborted = activeSignals.find(s => s.aborted);
-  if (preAborted) return preAborted;
-  if (typeof AbortSignal.any === 'function') {
-    return AbortSignal.any(activeSignals);
-  }
-  const controller = new AbortController();
-  const onAbort = (event) => {
-    controller.abort(event.target?.reason);
-    cleanup();
-  };
-  const cleanup = () => {
-    for (const s of activeSignals) s.removeEventListener('abort', onAbort);
-  };
-  for (const s of activeSignals) s.addEventListener('abort', onAbort);
-  return controller.signal;
-}
+
 
 const sleep = (ms, signal) => {
   return new Promise((resolve, reject) => {
@@ -619,6 +619,14 @@ const executeRequest = async (url, fetchOptions, timeout, userSignal) => {
   }
 };
 
+/**
+ * Orchestrates fetch requests with automatic jittered exponential backoff retries.
+ * Falls back to proxy list sequentially upon remote platform request blocks.
+ *
+ * @param {string|URL} url - Remote API endpoint.
+ * @param {Object} [options] - Custom retry options and fetch settings.
+ * @returns {Promise<Response>} Resolves with the successful HTTP response.
+ */
 export async function fetchWithRetry(url, options = {}) {
   const {
     method = 'GET',
@@ -676,8 +684,8 @@ export async function fetchWithRetry(url, options = {}) {
         lastError.status = lastResponse.status;
         lastError.response = lastResponse;
 
-        // Optimize failover: if we get a 429 (rate limit) or 403 (forbidden/CF block) on direct URL,
-        // and we have proxies left, skip retries on the direct URL and switch to proxy immediately.
+        // Fast-failover: if rate limited or blocked on a direct connection,
+        // immediately transition to proxies if any are configured.
         if ((lastResponse.status === 429 || lastResponse.status === 403) && !isProxy && urlsToTry.length > 1) {
           break;
         }
@@ -720,10 +728,18 @@ export async function fetchWithRetry(url, options = {}) {
   return lastResponse;
 }
 
-// ============================================================================
-// 6. Schema Validation & Normalization
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 6. Schema Validation & Normalization
+ * ---------------------------------------------------------------------------- */
 
+/**
+ * Validates raw profile structures and shapes them into a uniform profile.
+ *
+ * @param {Object} rawProfile - Raw payload from remote API.
+ * @param {string} platform - 'chess.com' or 'lichess'.
+ * @param {string} [requestedUsername] - Fallback user handle.
+ * @returns {Object} Normalized profile containing username, country, joined year, and metrics.
+ */
 export function validateAndNormalizeProfile(rawProfile, platform, requestedUsername = '') {
   const cleanPlatform = (platform || 'unknown').toLowerCase();
   const fallbackUsername = requestedUsername.trim();
@@ -847,6 +863,14 @@ function getFirstMoveFromPgn(pgn) {
   return match ? match[1] : null;
 }
 
+/**
+ * Transforms raw platform-specific game logs into a standard NormalizedGame payload.
+ *
+ * @param {Object} rawGame - Raw match object.
+ * @param {string} platform - 'chess.com' or 'lichess'.
+ * @param {string} requestedUsername - Target player identifier.
+ * @returns {Object} Normalized game structure with ratings, moves, side, and outcome.
+ */
 export function validateAndNormalizeGame(rawGame, platform, requestedUsername) {
   const cleanPlatform = (platform || 'unknown').toLowerCase();
   const cleanUser = (requestedUsername || '').trim().toLowerCase();
@@ -987,9 +1011,9 @@ export function validateAndNormalizeGame(rawGame, platform, requestedUsername) {
   });
 }
 
-// ============================================================================
-// 7. Dynamic Chess.com Month Fetcher
-// ============================================================================
+/* ----------------------------------------------------------------------------
+ * 7. Dynamic Chess.com Month Fetcher
+ * ---------------------------------------------------------------------------- */
 
 function parseJoinedDate(profile) {
   let joinedYear = null;
@@ -1022,12 +1046,27 @@ function parseJoinedDate(profile) {
   return { joinedYear, joinedMonth };
 }
 
+/**
+ * Generates monthly crawl records backwards in time.
+ * Yields raw game logs to caller incrementally to allow live UI progress updates.
+ *
+ * @param {Object} options - Generator settings.
+ * @param {string} options.username - Target user profile.
+ * @param {Object} options.profile - Profile payload to extract joined dates.
+ * @param {number} [options.maxGames=400] - Crawler limits.
+ * @param {number} [options.maxMonths=36] - Maximum month history lookup limit.
+ * @param {RequestQueue} [options.queue] - Concurrency controller instance.
+ * @param {Object} [options.fetchOptions] - Headers and AbortSignals.
+ * @param {Function} [options.isValidGame] - Filter criteria callback.
+ * @param {Array<Function|string>} [options.proxies] - Cors bypass providers.
+ * @param {Function} [options.onProgress] - Execution update callbacks.
+ */
 export async function* dynamicMonthLookbackGenerator({
   username,
   profile,
   maxGames = 400,
   maxMonths = 36,
-  queue, // RequestQueue instance passed in
+  queue, // RequestQueue instance
   fetchOptions = {},
   isValidGame = (g) => true,
   proxies = [],

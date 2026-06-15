@@ -1,6 +1,5 @@
 /**
- * RecentForm — last N game results as colored chips. Each chip pops in with
- * a staggered bounce. Hovering reveals a tooltip with the result word.
+ * Component to display historical match outcome status logs as custom badges.
  */
 export default function RecentForm({ form = [], size = 'md' }) {
   if (!form.length) {

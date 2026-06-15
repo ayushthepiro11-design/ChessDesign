@@ -342,11 +342,7 @@
   display: none !important;
 }
 
-@media (min-width: 768px) {
-  #chesscard-canvas {
-    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-}
+
 
 .vs-glow {
   animation: vsPulse 2s ease-in-out infinite;

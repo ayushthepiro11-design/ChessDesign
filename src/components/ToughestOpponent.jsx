@@ -57,7 +57,7 @@ export default function ToughestOpponent({ data, userRating }) {
           className={[
             'shrink-0 grid place-items-center h-11 w-11 rounded-lg',
             'border-2 border-line dark:border-line-dark',
-            'bg-gradient-to-br from-rose-100 to-amber-50 dark:from-rose-900/30 dark:to-amber-900/20',
+            'bg-rose-100/50 dark:bg-rose-900/20',
             'transition-transform duration-300 ease-boing group-hover:rotate-[-6deg] group-hover:scale-110',
           ].join(' ')}
         >

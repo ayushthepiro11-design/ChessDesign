@@ -1,4 +1,6 @@
-// Small formatting helpers, kept here so components stay focused on layout.
+/**
+ * @fileoverview Data formatting utilities for numeric and text presentation layers.
+ */
 
 export const compactNumber = (n) => {
   if (n == null || isNaN(n)) return '—'

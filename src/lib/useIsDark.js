@@ -14,7 +14,7 @@ export function useIsDark() {
       attributes: true,
       attributeFilter: ['class'],
     })
-    // Initialize again in case class list changed before hook mount
+    // Re-synchronize state in case root class list changed prior to instantiation.
     setIsDark(document.documentElement.classList.contains('dark'))
     return () => observer.disconnect()
   }, [])
