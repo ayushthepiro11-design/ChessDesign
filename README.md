@@ -6,7 +6,7 @@
 [![Framer Motion](https://img.shields.io/badge/Framer--Motion-11.x-FF00C1?style=flat-square&logo=framer&logoColor=white)](https://www.framer.com/motion/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-A modern, highly polished web application that analyzes public profiles to detail comprehensive performance statistics, playstyle insights, and active trends, and turns any public **Chess.com** or **Lichess** profile into a beautiful, downloadable infographic stats card. The UI/UX is built with flat, minimalistic elements inspired by the **Chess.com design system**, featuring fluid spring transitions, 3D hover effects, and a comprehensive set of performance metrics.
+A modern, highly polished web application that analyzes public profiles to detail comprehensive performance statistics, playstyle insights, and active trends, and turns any public **Chess.com** or **Lichess** profile into a beautiful, downloadable infographic stats card. The UI/UX is built with flat, minimalistic elements inspired by the **Chess.com design system**, featuring fluid spring transitions and a comprehensive set of performance metrics.
 
 ---
 
@@ -27,7 +27,6 @@ A modern, highly polished web application that analyzes public profiles to detai
 
 ### 🎨 Visual & Motion Design
 - **Flat Minimalism**: Smooth, modern sans-serif typography, rounded corners, and crisp dividers.
-- **3D Hover Tilt**: Mouse movements trigger a responsive 3D card tilt with a soft glare/shine effect, utilizing dynamic, scroll-independent bounding rects.
 - **Light & Dark Mode**: warm parchment paper background in light mode; clean dark-charcoal parchment (`#161513`) in dark mode.
 - **Seamless Actions**: Download the high-quality 2x PNG card image or share directly to social media (X/Twitter).
 
