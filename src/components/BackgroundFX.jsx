@@ -37,15 +37,19 @@ export default memo(function BackgroundFX() {
       {/* Gradient orbs — more saturated for a touch of playfulness */}
       <div
         className="absolute -top-40 -left-40 h-[560px] w-[560px] rounded-full bg-accent/20 dark:bg-accent/25 blur-3xl animate-[orb1_18s_ease-in-out_infinite]"
+        style={{ willChange: 'transform' }}
       />
       <div
         className="absolute top-1/3 -right-40 h-[640px] w-[640px] rounded-full bg-emerald-300/15 dark:bg-emerald-500/15 blur-3xl animate-[orb2_22s_ease-in-out_infinite]"
+        style={{ willChange: 'transform' }}
       />
       <div
         className="absolute -bottom-40 left-1/4 h-[480px] w-[480px] rounded-full bg-amber-200/30 dark:bg-amber-700/15 blur-3xl animate-[orb3_26s_ease-in-out_infinite]"
+        style={{ willChange: 'transform' }}
       />
       <div
         className="absolute top-1/2 left-1/3 h-[380px] w-[380px] rounded-full bg-rose-200/20 dark:bg-rose-700/10 blur-3xl animate-[orb4_30s_ease-in-out_infinite]"
+        style={{ willChange: 'transform' }}
       />
 
       {/* Dot grid */}
