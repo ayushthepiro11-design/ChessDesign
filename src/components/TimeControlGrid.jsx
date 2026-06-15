@@ -2,8 +2,7 @@ import { formatPercent } from '../lib/format'
 import AnimatedNumber from './AnimatedNumber'
 
 /**
- * TimeControlGrid — per-format rating breakdown. Each tile pops in with
- * a stagger and lifts dramatically on hover with a colored shadow.
+ * Component to render a grid of rating summaries categorized by format.
  */
 const ICONS = {
   Rapid: '⚡',
@@ -64,35 +63,39 @@ export default function TimeControlGrid({ perFormat = [], primaryKey, onHover })
             }}
             className={[
               'min-w-0',
-              'relative rounded-xl border p-3 cursor-default',
+              'relative rounded-xl border p-2 cursor-default',
               'transition-all duration-200 ease-out',
               'hover:-translate-y-0.5',
               tone.shadow,
               tone.border,
               isPrimary
-                ? 'border-accent/50 bg-accent-soft/45 dark:bg-accent-softDark/45 font-bold shadow-sm'
-                : 'border-line dark:border-line-dark',
+                ? 'border-accent/60 bg-accent-soft/45 dark:bg-accent-softDark/45 font-bold shadow-sm'
+                : 'border-line dark:border-line-dark bg-chip/5 dark:bg-chip-dark/5',
             ].join(' ')}
             style={{ animation: `punchIn 400ms cubic-bezier(0.2, 0.8, 0.2, 1) ${i * 50}ms backwards` }}
           >
-            {isPrimary && (
-              <span className="absolute -top-2 -right-2 rounded-full bg-accent text-white text-[9px] font-extrabold px-1.5 py-0.5 tracking-wider uppercase shadow-[0_2px_4px_rgba(0,0,0,0.12)]">
-                primary
-              </span>
-            )}
-            <div className="flex items-center justify-between gap-1 text-[9.5px] sm:text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted dark:text-muted-dark min-w-0">
-              <span className="truncate" title={f.label}>{f.label}</span>
-              <span className="text-[12px] sm:text-[13px] leading-none shrink-0">{ICONS[f.label] || '♟'}</span>
-            </div>
-            <div className="mt-1.5 font-sans text-[18px] sm:text-[20px] leading-none font-bold tracking-tight">
-              <AnimatedNumber value={f.rating} />
-            </div>
-            <div className="mt-1 flex items-center justify-between gap-1 text-[9.5px] sm:text-[10.5px] text-muted dark:text-muted-dark tabular-nums font-medium min-w-0">
-              <span className="truncate">peak {f.peak}</span>
-              {total > 0 && <span className="shrink-0">{formatPercent(winRate, 0)}</span>}
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 text-[9px] min-[400px]:text-[10px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
+                  {isPrimary && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse shrink-0" title="Primary Format" />
+                  )}
+                  <span className="truncate">{f.label}</span>
+                </div>
+                <div className="mt-0.5 font-sans text-[15px] sm:text-[17px] leading-none font-extrabold tracking-tight">
+                  <AnimatedNumber value={f.rating} />
+                </div>
+              </div>
+              <div className="text-right shrink-0 flex flex-col items-end gap-0.5 text-[9px] text-muted dark:text-muted-dark tabular-nums font-medium">
+                <div className="flex items-center gap-1">
+                  <span>peak {f.peak}</span>
+                  <span className="text-[10px] leading-none shrink-0">{ICONS[f.label] || '♟'}</span>
+                </div>
+                {total > 0 && <span className="font-bold text-emerald-600 dark:text-emerald-450">{formatPercent(winRate, 0)} WR</span>}
+              </div>
             </div>
             {total > 0 && (
-              <div className="mt-2 flex h-2.5 w-full overflow-hidden rounded-full border border-line/45 dark:border-line-dark/40 bg-chip/40 dark:bg-chip-dark/45">
+              <div className="mt-1.5 flex h-1.5 w-full overflow-hidden rounded-full border border-line/45 dark:border-line-dark/40 bg-chip/40 dark:bg-chip-dark/45">
                 <div className="h-full bg-emerald-600 dark:bg-emerald-400" style={{ width: `${((f.record?.win || 0) / total) * 100}%` }} />
                 <div className="h-full bg-amber-500 dark:bg-amber-300" style={{ width: `${((f.record?.draw || 0) / total) * 100}%` }} />
                 <div className="h-full bg-rose-600 dark:bg-rose-400" style={{ width: `${((f.record?.loss || 0) / total) * 100}%` }} />
