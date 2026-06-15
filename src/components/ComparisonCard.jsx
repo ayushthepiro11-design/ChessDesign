@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { motion, useMotionValue, useTransform, useReducedMotion, useSpring } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
+import { useSafeReducedMotion } from '../lib/useSafeReducedMotion'
 import { Flame, Spark, Trophy } from './Icons'
 import AnimatedNumber from './AnimatedNumber'
 import LiveBadge from './LiveBadge'
@@ -24,9 +25,7 @@ export default function ComparisonCard({
   const localCardRef = useRef(null)
   const cardRef = externalCardRef || localCardRef
   const innerRef = useRef(null)
-  const reduce = useReducedMotion()
-  const [booped, setBooped] = useState(false)
-  const [shineKey, setShineKey] = useState(0)
+  const reduce = useSafeReducedMotion()
   const [face, setFace] = useState(0)
   const [avatar1Failed, setAvatar1Failed] = useState(false)
   const [avatar2Failed, setAvatar2Failed] = useState(false)
@@ -49,37 +48,8 @@ export default function ComparisonCard({
     ty.set(y)
   }, [cardRef, tx, ty])
 
-  // Framer Motion motion values for 3D tilt
-  const rx = useMotionValue(0)
-  const ry = useMotionValue(0)
-  const gx = useMotionValue(50)
-  const gy = useMotionValue(50)
-  const gOpacity = useMotionValue(0)
-
-  // Spring configuration for buttery smooth hover tilt and snap-back
-  const springConfig = { damping: 25, stiffness: 220 }
-  const rxSpring = useSpring(rx, springConfig)
-  const rySpring = useSpring(ry, springConfig)
-
-  // Derived transforms using spring values
-  const tiltTransform = useTransform(
-    [rxSpring, rySpring],
-    ([latestRx, latestRy]) => `rotateX(${latestRx}deg) rotateY(${latestRy}deg)`
-  )
-  const glareBackground = useTransform(
-    [gx, gy],
-    ([latestGx, latestGy]) =>
-      `radial-gradient(480px circle at ${latestGx}% ${latestGy}%, rgba(255,255,255,0.2), transparent 45%)`
-  )
-  const watermarkTransform = useTransform(
-    [rySpring, rxSpring],
-    ([latestRy, latestRx]) =>
-      `translateZ(-30px) translateX(${-latestRy * 1.2}px) translateY(${latestRx * 1.2}px) ${booped ? 'scale(1.02)' : 'scale(1)'}`
-  )
-
-  // Reset face index and tooltip when profiles change
+  // Reset navigation index and local caches on profile parameter changes.
   useEffect(() => {
-    setShineKey((k) => k + 1)
     setFace(0)
     setAvatar1Failed(false)
     setAvatar2Failed(false)
@@ -97,7 +67,7 @@ export default function ComparisonCard({
 
   const goToStable = useCallback((i) => setFace(Math.max(0, Math.min(FACES.length - 1, i))), [])
 
-  // Keyboard navigation (scoped to card element)
+  // Scoped keyboard listener for tab panel transitions.
   useEffect(() => {
     const el = innerRef.current
     if (!el) return
@@ -111,7 +81,7 @@ export default function ComparisonCard({
     return () => el.removeEventListener('keydown', onKey)
   }, [face])
 
-  // Touch swipe
+  // Touch event tracking for mobile swipe gestures.
   const touchStart = useRef(null)
   const onTouchStart = (e) => {
     touchStart.current = e.touches[0].clientX
@@ -128,31 +98,7 @@ export default function ComparisonCard({
 
   if (!data1 || !data2) return null
 
-  const handleMove = useCallback((e) => {
-    if (reduce) return
-    const cardEl = cardRef.current
-    if (!cardEl) return
-    const rect = cardEl.getBoundingClientRect()
-    const px = (e.clientX - rect.left) / rect.width
-    const py = (e.clientY - rect.top) / rect.height
-    rx.set((0.5 - py) * 4)
-    ry.set((px - 0.5) * 4)
-    gx.set(px * 100)
-    gy.set(py * 100)
-    gOpacity.set(1)
-  }, [cardRef, reduce, rx, ry, gx, gy, gOpacity])
-
-  const handleEnter = () => {
-    setBooped(true)
-  }
-  const handleLeave = () => {
-    setBooped(false)
-    rx.set(0)
-    ry.set(0)
-    gOpacity.set(0)
-  }
-
-  // Profile initials fallbacks
+  // Helper to extract player initials for fallback avatar representations.
   const initials1 = (data1.profile.name || data1.profile.username || '?')
     .split(/\s+/)
     .map((s) => s[0])
@@ -177,17 +123,10 @@ export default function ComparisonCard({
     <div
       ref={cardRef}
       id="chesscard-canvas"
-      className={[
-        'group relative w-full max-w-[780px] transition-transform duration-300 ease-boing',
-        booped ? '-translate-y-1.5' : '',
-      ].join(' ')}
-      style={{ perspective: '1200px' }}
+      className="group relative w-full max-w-[760px] transition-transform duration-300 ease-boing"
     >
-      <motion.div
+      <div
         ref={innerRef}
-        onMouseEnter={handleEnter}
-        onMouseMove={handleMove}
-        onMouseLeave={handleLeave}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         tabIndex={0}
@@ -197,126 +136,111 @@ export default function ComparisonCard({
           'relative w-full rounded-2xl overflow-hidden bg-canvas dark:bg-canvas-dark',
           'border border-line dark:border-line-dark',
           'shadow-card dark:shadow-cardDark',
-          'flex flex-col xl:flex-row min-h-[400px] xl:min-h-[420px]',
+          'flex flex-col min-h-[210px] lg:min-h-[220px]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
           'transition-all duration-200',
-          booped
-            ? 'shadow-lg'
-            : '',
+          'hover:shadow-md hover:-translate-y-0.5',
         ].join(' ')}
         style={{
-          transformStyle: 'preserve-3d',
-          transform: tiltTransform,
           touchAction: 'pan-y',
-          willChange: 'transform',
         }}
       >
-        {/* Parallax Watermark Kings/Queens */}
-        <motion.div
+        {/* Centered profile watermark */}
+        <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 select-none overflow-hidden transition-transform duration-500 ease-boing"
-          style={{ transform: watermarkTransform }}
+          className="pointer-events-none absolute inset-0 select-none overflow-hidden"
         >
-          <div className="absolute -right-4 -top-8 text-[320px] leading-none font-serif text-ink/[0.04] dark:text-ink-dark/[0.05]">
+          <div className="absolute -right-4 -top-8 text-[250px] leading-none font-serif text-ink/[0.04] dark:text-ink-dark/[0.05]">
             ♔
           </div>
-          <div className="absolute -left-6 -bottom-12 text-[240px] leading-none font-serif text-ink/[0.03] dark:text-ink-dark/[0.04]">
+          <div className="absolute -left-6 -bottom-12 text-[190px] leading-none font-serif text-ink/[0.03] dark:text-ink-dark/[0.04]">
             ♕
           </div>
-        </motion.div>
-
-        {/* Glare */}
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 transition-opacity duration-200 ease-snappy z-10"
-          style={{
-            opacity: gOpacity,
-            background: glareBackground,
-            mixBlendMode: 'soft-light',
-          }}
-        />
-
-        {/* Shine Sweep */}
-        <div key={shineKey} aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl z-10">
-          <div
-            className="absolute -inset-y-2 -left-1/3 w-1/2 animate-[shineSweep_1200ms_ease-out_forwards]"
-            style={{
-              background:
-                'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.0) 30%, rgba(255,255,255,0.45) 50%, rgba(255,255,255,0.0) 70%, transparent 100%)',
-              transform: 'skewX(-20deg)',
-              mixBlendMode: 'soft-light',
-            }}
-          />
         </div>
 
-        {/* ==================== LEFT PANEL: PLAYER 1 PROFILE ==================== */}
-        <div className="w-full xl:w-[200px] shrink-0 border-b xl:border-b-0 xl:border-r border-line dark:border-line-dark p-4 sm:p-5 bg-pixel-red/[0.03] dark:bg-pixel-red/[0.015] flex flex-col justify-between gap-3.5 relative z-10 overflow-hidden border-l-4 border-l-pixel-red xl:border-l-0">
-          <div className="space-y-4 text-center xl:text-left">
-            <div className="flex flex-col items-center xl:items-start gap-2.5">
-              <div className="relative grid place-items-center h-12 w-12 min-h-[3rem] min-w-[3rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-red overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
-                {data1.profile.avatar && !avatar1Failed ? (
-                  <img src={data1.profile.avatar} alt={`Avatar of ${data1.profile.username}`} className="h-full w-full object-cover" onError={() => setAvatar1Failed(true)} />
-                ) : (
-                  <span className="font-sans font-bold text-sm">{initials1}</span>
-                )}
-              </div>
-              <div className="min-w-0 w-full">
-                <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[8.5px] font-bold bg-pixel-red/10 text-pixel-red dark:bg-pixel-red/20 uppercase tracking-wide">
+        {/* Top Header Panel: Player 1 Profile & Ratings VS Player 2 Profile & Ratings */}
+        <div className="w-full border-b border-line dark:border-line-dark p-3.5 bg-chip/5 dark:bg-chip-dark/10 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 overflow-hidden">
+          
+          {/* Player 1 details */}
+          <div className="flex items-center gap-3 min-w-0 flex-1 border-l-4 border-l-pixel-red pl-2.5 md:border-l-0 md:pl-0">
+            <div className="relative grid place-items-center h-10 w-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-red overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
+              {data1.profile.avatar && !avatar1Failed ? (
+                <img src={data1.profile.avatar} alt={`Avatar of ${data1.profile.username}`} className="h-full w-full object-cover" onError={() => setAvatar1Failed(true)} />
+              ) : (
+                <span className="font-sans font-bold text-xs">{initials1}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[8px] font-bold bg-pixel-red/10 text-pixel-red dark:bg-pixel-red/20 uppercase tracking-wide">
                   {data1.platform === 'lichess' ? 'Lichess' : 'Chess.com'}
                 </span>
-                <h2 className="mt-1 font-sans text-[16px] leading-tight font-bold truncate">
+                <h2 className="font-sans text-[14px] leading-tight font-bold truncate">
                   {data1.profile.name || data1.profile.username}
                 </h2>
-                <div className="mt-0.5 text-[11px] text-muted dark:text-muted-dark truncate">
-                  @{data1.profile.username}
+              </div>
+              <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted dark:text-muted-dark flex-wrap">
+                <span>@{data1.profile.username}</span>
+                <span className="text-muted/40">•</span>
+                <span className="font-bold text-ink dark:text-ink-dark">Peak {data1.primary.peak} / Live {r1}</span>
+              </div>
+              {data1.insights?.style && (
+                <div className="mt-1">
+                  <StyleBadge style={data1.insights.style} sampleSize={data1.insights.sampleSize} compact />
                 </div>
-              </div>
-            </div>
-
-            {/* P1 Main rating */}
-            <div className="rounded-xl border border-pixel-red/20 p-3 flex flex-col bg-gradient-to-br from-pixel-red/[0.04] to-transparent">
-              <div className="text-[9.5px] font-bold uppercase tracking-[0.08em] text-pixel-red dark:text-pixel-red flex items-center gap-1">
-                <Trophy className="h-3 w-3 text-amber-500" />
-                P1 Peak / Live
-              </div>
-              <div className="mt-1 flex flex-col items-start leading-none">
-                <span className="font-sans text-[18px] sm:text-[20px] font-extrabold leading-none tracking-tight tabular-nums">
-                  <AnimatedNumber value={r1} />
-                </span>
-                <span className="text-[10px] text-muted dark:text-muted-dark font-sans font-semibold tabular-nums mt-0.5">
-                  peak {data1.primary.peak}
-                </span>
-              </div>
-              <div className="mt-1.5 text-[9px] text-muted dark:text-muted-dark font-bold uppercase tracking-wider">
-                {data1.primary.label}
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Archetype badge P1 */}
-          {data1.insights?.style && (
-            <div className="rounded-xl border-2 border-line dark:border-line-dark p-3 bg-chip/40 dark:bg-chip-dark/25 relative overflow-hidden flex flex-col justify-between min-h-[96px] mt-2">
-              <div className="absolute right-0 top-0 opacity-[0.06] text-[50px] leading-none font-serif select-none pointer-events-none">
-                {data1.insights.style.icon}
-              </div>
-              <div>
-                <div className="inline-flex rounded px-1 py-0.5 text-[7.5px] font-bold bg-line/60 dark:bg-line-dark/60 uppercase">
-                  P1 Style
-                </div>
-                <div className="font-sans text-[13px] font-extrabold leading-tight mt-1 text-ink dark:text-ink-dark">
-                  {data1.insights.style.archetype}
-                </div>
-              </div>
-              <p className="text-[9.5px] leading-snug text-muted dark:text-muted-dark mt-1 select-none line-clamp-2">
-                {data1.insights.style.tagline}
-              </p>
+          {/* VS badge in center */}
+          <div className="flex flex-row md:flex-col items-center gap-2 shrink-0 justify-center">
+            <div className="h-7 w-7 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center font-black text-[9px] shadow-sm select-none vs-glow shrink-0">
+              VS
             </div>
-          )}
+            {ratingDelta > 0 && (
+              <span className="text-[9px] font-extrabold text-accent bg-accent/10 rounded px-1.5 py-0.5 uppercase tracking-wider whitespace-nowrap">
+                Δ {ratingDelta} pts
+              </span>
+            )}
+          </div>
+
+          {/* Player 2 details */}
+          <div className="flex items-center gap-3 min-w-0 flex-1 border-r-4 border-r-pixel-green pr-2.5 md:border-r-0 md:pr-0 md:justify-end md:text-right">
+            <div className="flex md:flex-row-reverse items-center gap-3 min-w-0 w-full justify-start md:justify-start">
+              <div className="relative grid place-items-center h-10 w-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-green overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
+                {data2.profile.avatar && !avatar2Failed ? (
+                  <img src={data2.profile.avatar} alt={`Avatar of ${data2.profile.username}`} className="h-full w-full object-cover" onError={() => setAvatar2Failed(true)} />
+                ) : (
+                  <span className="font-sans font-bold text-xs">{initials2}</span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex md:flex-row-reverse items-center gap-1.5 flex-wrap">
+                  <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[8px] font-bold bg-pixel-green/10 text-pixel-green dark:bg-pixel-green/20 uppercase tracking-wide">
+                    {data2.platform === 'lichess' ? 'Lichess' : 'Chess.com'}
+                  </span>
+                  <h2 className="font-sans text-[14px] leading-tight font-bold truncate">
+                    {data2.profile.name || data2.profile.username}
+                  </h2>
+                </div>
+                <div className="mt-0.5 flex md:flex-row-reverse items-center gap-2 text-[10px] text-muted dark:text-muted-dark flex-wrap">
+                  <span>@{data2.profile.username}</span>
+                  <span className="text-muted/40">•</span>
+                  <span className="font-bold text-ink dark:text-ink-dark">Peak {data2.primary.peak} / Live {r2}</span>
+                </div>
+                {data2.insights?.style && (
+                  <div className="mt-1 flex md:justify-end">
+                    <StyleBadge style={data2.insights.style} sampleSize={data2.insights.sampleSize} compact />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* ==================== CENTER PANEL: Matchup Hub & Stats ==================== */}
-        <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between gap-3.5 relative z-10">
-          {/* Matchup Header with VS circle and delta */}
+        {/* Center Section: Matchup Hub & Stats */}
+        <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-between gap-3 relative z-10">
+          {/* Matchup heading summary */}
           <div className="flex items-center justify-between gap-4 pb-2 border-b-2 border-line/50 dark:border-line-dark/50">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted dark:text-muted-dark truncate min-w-0">Matchup Details</span>
             
@@ -332,11 +256,11 @@ export default function ComparisonCard({
             </div>
           </div>
 
-          {/* Navigation tabs */}
+          {/* Tab selection controls */}
           <FaceNav active={face} onSelect={goToStable} />
 
-          {/* Tab content slider */}
-          <div className="relative overflow-hidden flex-1 flex flex-col min-h-[200px] md:min-h-[220px]" aria-live="polite" style={{ contain: 'content' }}>
+          {/* Transition panel container */}
+          <div className="relative overflow-hidden flex-1 flex flex-col min-h-[125px] md:min-h-[135px]" aria-live="polite" style={{ contain: 'content' }}>
             <motion.div
               className="flex h-full"
               animate={{ x: `-${face * 100}%` }}
@@ -356,71 +280,8 @@ export default function ComparisonCard({
           </div>
         </div>
 
-        {/* ==================== RIGHT PANEL: PLAYER 2 PROFILE ==================== */}
-        <div className="w-full xl:w-[200px] shrink-0 border-t xl:border-t-0 xl:border-l border-line dark:border-line-dark p-4 sm:p-5 bg-pixel-green/[0.03] dark:bg-pixel-green/[0.015] flex flex-col justify-between gap-3.5 relative z-10 overflow-hidden order-last xl:order-none border-r-4 border-r-pixel-green xl:border-r-0 xl:border-l-pixel-green">
-          <div className="space-y-4 text-center xl:text-left">
-            <div className="flex flex-col items-center xl:items-start gap-2.5">
-              <div className="relative grid place-items-center h-12 w-12 min-h-[3rem] min-w-[3rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-green overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
-                {data2.profile.avatar && !avatar2Failed ? (
-                  <img src={data2.profile.avatar} alt={`Avatar of ${data2.profile.username}`} className="h-full w-full object-cover" onError={() => setAvatar2Failed(true)} />
-                ) : (
-                  <span className="font-sans font-bold text-sm">{initials2}</span>
-                )}
-              </div>
-              <div className="min-w-0 w-full">
-                <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[8.5px] font-bold bg-pixel-green/10 text-pixel-green dark:bg-pixel-green/20 uppercase tracking-wide">
-                  {data2.platform === 'lichess' ? 'Lichess' : 'Chess.com'}
-                </span>
-                <h2 className="mt-1 font-sans text-[16px] leading-tight font-bold truncate">
-                  {data2.profile.name || data2.profile.username}
-                </h2>
-                <div className="mt-0.5 text-[11px] text-muted dark:text-muted-dark truncate">
-                  @{data2.profile.username}
-                </div>
-              </div>
-            </div>
 
-            {/* P2 Main rating */}
-            <div className="rounded-xl border border-pixel-green/20 p-3 flex flex-col bg-gradient-to-br from-pixel-green/[0.04] to-transparent">
-              <div className="text-[9.5px] font-bold uppercase tracking-[0.08em] text-pixel-green dark:text-pixel-green flex items-center gap-1">
-                <Trophy className="h-3 w-3 text-amber-500" />
-                P2 Peak / Live
-              </div>
-              <div className="mt-1 flex flex-col items-start leading-none">
-                <span className="font-sans text-[18px] sm:text-[20px] font-extrabold leading-none tracking-tight tabular-nums">
-                  <AnimatedNumber value={r2} />
-                </span>
-                <span className="text-[10px] text-muted dark:text-muted-dark font-sans font-semibold tabular-nums mt-0.5">
-                  peak {data2.primary.peak}
-                </span>
-              </div>
-              <div className="mt-1.5 text-[9px] text-muted dark:text-muted-dark font-bold uppercase tracking-wider">
-                {data2.primary.label}
-              </div>
-            </div>
-          </div>
-
-          {/* Archetype badge P2 */}
-          {data2.insights?.style && (
-            <div className="rounded-xl border-2 border-line dark:border-line-dark p-3 bg-chip/40 dark:bg-chip-dark/25 relative overflow-hidden flex flex-col justify-between min-h-[96px] mt-2">
-              <div className="absolute right-0 top-0 opacity-[0.06] text-[50px] leading-none font-serif select-none pointer-events-none">
-                {data2.insights.style.icon}
-              </div>
-              <div>
-                <div className="inline-flex rounded px-1 py-0.5 text-[7.5px] font-bold bg-line/60 dark:bg-line-dark/60 uppercase">
-                  P2 Style
-                </div>
-                <div className="font-sans text-[13px] font-extrabold leading-tight mt-1 text-ink dark:text-ink-dark">
-                  {data2.insights.style.archetype}
-                </div>
-              </div>
-              <p className="text-[9.5px] leading-snug text-muted dark:text-muted-dark mt-1 select-none line-clamp-2">
-                {data2.insights.style.tagline}
-              </p>
-            </div>
-          )}
-        </div>
-      </motion.div>
+      </div>
 
       {tooltipContent && (
         <motion.div
@@ -435,14 +296,16 @@ export default function ComparisonCard({
         </motion.div>
       )}
 
-      {/* Swipe buttons */}
+      {/* Mobile-focused slider controls */}
       <ArrowButton direction="prev" onClick={() => goToStable(face - 1)} disabled={face === 0} />
       <ArrowButton direction="next" onClick={() => goToStable(face + 1)} disabled={face === FACES.length - 1} />
     </div>
   )
 }
 
-/* ----------------- Navigation chrome ----------------- */
+/* ----------------------------------------------------------------------------
+ * 1. UI Navigation Components
+ * ---------------------------------------------------------------------------- */
 
 const FaceNav = React.memo(function FaceNav({ active, onSelect }) {
   return (
@@ -509,7 +372,9 @@ const Face = React.memo(function Face({ children }) {
   )
 })
 
-/* ----------------- Sub Tabs ----------------- */
+/* ----------------------------------------------------------------------------
+ * 2. Tab Panel Child Elements
+ * ---------------------------------------------------------------------------- */
 
 const FormatsTab = React.memo(function FormatsTab({ data1, data2, onHover }) {
   const getRatingForFormat = (data, formatKey) => {
@@ -568,7 +433,7 @@ const FormatsTab = React.memo(function FormatsTab({ data1, data2, onHover }) {
                 </span>
               </div>
             </div>
-            {/* Comparative bar */}
+            {/* Comparative ratio bar */}
             <div
               className="h-1.5 w-full rounded-full overflow-hidden bg-chip dark:bg-chip-dark border border-line/30 flex cursor-pointer"
               onMouseEnter={(e) => onHover?.(e, `${fmt.toUpperCase()} Rating · P1 ${p1Val || '—'} vs P2 ${p2Val || '—'}${delta !== null ? ` (Gap: ${delta} pts)` : ''}`)}
@@ -578,7 +443,7 @@ const FormatsTab = React.memo(function FormatsTab({ data1, data2, onHover }) {
               <div className="h-full bg-accent" style={{ width: `${ratio}%` }} />
               <div className="h-full bg-ink/75 dark:bg-ink-dark/75" style={{ width: `${100 - ratio}%` }} />
             </div>
-            {/* Records line */}
+            {/* Record summary metrics */}
             <div className="flex justify-between text-[8.5px] text-muted dark:text-muted-dark font-sans font-medium px-0.5 leading-none">
               <span
                 className="cursor-pointer hover:text-ink dark:hover:text-ink-dark transition-colors"
@@ -652,7 +517,7 @@ const RepertoireTab = React.memo(function RepertoireTab({ data1, data2, onHover 
 
   return (
     <div className="h-full overflow-y-auto pr-1 space-y-3 pt-1 scrollbar-thin" style={{ scrollbarGutter: 'stable' }}>
-      {/* Player 1 Record */}
+      {/* Cumulative player one records */}
       <div className="space-y-1">
         <div className="flex items-center justify-between text-[9px]">
           <span className="font-semibold uppercase text-muted dark:text-muted-dark truncate max-w-[50%]">
@@ -687,7 +552,7 @@ const RepertoireTab = React.memo(function RepertoireTab({ data1, data2, onHover 
         </div>
       </div>
 
-      {/* Player 2 Record */}
+      {/* Cumulative player two records */}
       <div className="space-y-1">
         <div className="flex items-center justify-between text-[9px]">
           <span className="font-semibold uppercase text-muted dark:text-muted-dark truncate max-w-[50%]">
@@ -722,7 +587,7 @@ const RepertoireTab = React.memo(function RepertoireTab({ data1, data2, onHover 
         </div>
       </div>
 
-      {/* Color Split Comparison */}
+      {/* Performance metrics by color */}
       <div className="rounded-xl border border-line dark:border-line-dark p-2 bg-chip/5 dark:bg-chip-dark/5">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -808,7 +673,7 @@ const RepertoireTab = React.memo(function RepertoireTab({ data1, data2, onHover 
         </div>
       </div>
 
-      {/* Average Game Length */}
+      {/* Comparative game length statistics */}
       <div className="flex items-center justify-between text-[9.5px] text-muted dark:text-muted-dark font-sans leading-none border-t border-line/40 dark:border-line-dark/40 pt-1.5">
         <span>Average game length:</span>
         <div className="font-mono">
@@ -853,8 +718,8 @@ const MatchupTab = React.memo(function MatchupTab({ data1, data2, source1, sourc
 
   return (
     <div className="h-full overflow-y-auto pr-1 space-y-3 pt-1 flex flex-col justify-between scrollbar-thin" style={{ scrollbarGutter: 'stable' }}>
-      {/* Matchup Analysis text box */}
-      <div className="rounded-xl border border-line dark:border-line-dark p-3.5 bg-gradient-to-br from-accent-soft/10 to-transparent dark:from-accent-softDark/10">
+      {/* Narrative style analysis summary */}
+      <div className="rounded-xl border border-line dark:border-line-dark p-3.5 bg-accent-soft/15 dark:bg-accent-softDark/15">
         <div className="text-[9px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark mb-1 flex items-center gap-1.5">
           <Spark className="h-3.5 w-3.5 text-pixel-yellow shrink-0" />
           Style Matchup Analysis
@@ -864,9 +729,9 @@ const MatchupTab = React.memo(function MatchupTab({ data1, data2, source1, sourc
         </p>
       </div>
 
-      {/* Openings side by side */}
+      {/* Opening repertoire comparison */}
       <div className="grid grid-cols-2 gap-2">
-        {/* P1 Favorite opening */}
+        {/* Player one opening highlight */}
         <div className="rounded-xl border border-pixel-red/20 p-2 min-w-0 bg-pixel-red/[0.02] flex flex-col justify-between">
           <div>
             <div className="text-[8.5px] font-bold uppercase tracking-wider text-pixel-red truncate">
@@ -888,7 +753,7 @@ const MatchupTab = React.memo(function MatchupTab({ data1, data2, source1, sourc
           )}
         </div>
 
-        {/* P2 Favorite opening */}
+        {/* Player two opening highlight */}
         <div className="rounded-xl border border-pixel-green/20 p-2 min-w-0 bg-pixel-green/[0.02] flex flex-col justify-between">
           <div>
             <div className="text-[8.5px] font-bold uppercase tracking-wider text-pixel-green truncate">
@@ -911,7 +776,7 @@ const MatchupTab = React.memo(function MatchupTab({ data1, data2, source1, sourc
         </div>
       </div>
 
-      {/* Live Badge and Refresh section */}
+      {/* Synchronization and streak status */}
       <div className="flex justify-between items-center mt-1 pt-1.5 border-t border-line/45 dark:border-line-dark/45">
         <LiveBadge
           fetchedAt={data1.fetchedAt}

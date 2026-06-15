@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { motion, useMotionValue, useTransform, useReducedMotion, useSpring } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
+import { useSafeReducedMotion } from '../lib/useSafeReducedMotion'
 import { Flame, Spark, Target, Trophy } from './Icons'
 import AnimatedNumber from './AnimatedNumber'
 import BeatingTheOdds from './BeatingTheOdds'
@@ -24,44 +25,14 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
   const localCardRef = useRef(null)
   const cardRef = externalCardRef || localCardRef
   const innerRef = useRef(null)
-  const reduce = useReducedMotion()
-  const [booped, setBooped] = useState(false)
-  const [shineKey, setShineKey] = useState(0)
+  const reduce = useSafeReducedMotion()
   const [face, setFace] = useState(0)
   const [avatarFailed, setAvatarFailed] = useState(false)
   const [tooltipContent, setTooltipContent] = useState(null)
   const tx = useMotionValue(0)
   const ty = useMotionValue(0)
 
-  // Framer Motion motion values for 3D tilt
-  const rx = useMotionValue(0)
-  const ry = useMotionValue(0)
-  const gx = useMotionValue(50)
-  const gy = useMotionValue(50)
-  const gOpacity = useMotionValue(0)
-
-  // Spring configuration for buttery smooth hover tilt and snap-back
-  const springConfig = { damping: 25, stiffness: 220 }
-  const rxSpring = useSpring(rx, springConfig)
-  const rySpring = useSpring(ry, springConfig)
-
-  // Derived transforms using spring values to prevent conflicts with CSS transitions
-  const tiltTransform = useTransform(
-    [rxSpring, rySpring],
-    ([latestRx, latestRy]) => `rotateX(${latestRx}deg) rotateY(${latestRy}deg)`
-  )
-  const glareBackground = useTransform(
-    [gx, gy],
-    ([latestGx, latestGy]) =>
-      `radial-gradient(480px circle at ${latestGx}% ${latestGy}%, rgba(255,255,255,0.12), transparent 45%)`
-  )
-  const watermarkTransform = useTransform(
-    [rySpring, rxSpring],
-    ([latestRy, latestRx]) =>
-      `translateZ(-30px) translateX(${-latestRy * 1.5}px) translateY(${latestRx * 1.5}px) ${booped ? 'scale(1.03)' : 'scale(1)'}`
-  )
-
-  // Reset to first tab when username changes
+  // Adjust tooltip positioning on hover events.
   const handleTooltipHover = useCallback((e, content) => {
     if (!e || !content) {
       setTooltipContent(null)
@@ -77,9 +48,8 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
     ty.set(y)
   }, [cardRef, tx, ty])
 
-  // Reset to first tab and clear tooltip when username changes
+  // Reset navigation index and local caches on profile parameter changes.
   useEffect(() => {
-    setShineKey((k) => k + 1)
     setFace(0)
     setAvatarFailed(false)
     setTooltipContent(null)
@@ -91,7 +61,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
 
   const goToStable = useCallback((i) => setFace(Math.max(0, Math.min(FACES.length - 1, i))), [])
 
-  // Keyboard navigation (scoped to card element)
+  // Scoped keyboard listener for tab panel transitions.
   useEffect(() => {
     const el = innerRef.current
     if (!el) return
@@ -105,7 +75,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
     return () => el.removeEventListener('keydown', onKey)
   }, [face])
 
-  // Touch swipe
+  // Touch event tracking for mobile swipe gestures.
   const touchStart = useRef(null)
   const onTouchStart = (e) => {
     touchStart.current = e.touches[0].clientX
@@ -122,31 +92,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
 
   if (!data) return null
 
-  const handleMove = useCallback((e) => {
-    if (reduce) return
-    const cardEl = cardRef.current
-    if (!cardEl) return
-    const rect = cardEl.getBoundingClientRect()
-    const px = (e.clientX - rect.left) / rect.width
-    const py = (e.clientY - rect.top) / rect.height
-    rx.set((0.5 - py) * 5)
-    ry.set((px - 0.5) * 5)
-    gx.set(px * 100)
-    gy.set(py * 100)
-    gOpacity.set(1)
-  }, [cardRef, reduce, rx, ry, gx, gy, gOpacity])
-
-  const handleEnter = () => {
-    setBooped(true)
-  }
-  const handleLeave = () => {
-    setBooped(false)
-    rx.set(0)
-    ry.set(0)
-    gOpacity.set(0)
-  }
-
-  // Profile initials fallback helper
+  // Helper to extract player initials for fallback avatar representations.
   const initials = (data.profile.name || data.profile.username || '?')
     .split(/\s+/)
     .map((s) => s[0])
@@ -159,17 +105,10 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
     <div
       ref={cardRef}
       id="chesscard-canvas"
-      className={[
-        'group relative w-full max-w-[660px] transition-all duration-300 ease-boing',
-        booped ? '-translate-y-1.5' : '',
-      ].join(' ')}
-      style={{ perspective: '1200px' }}
+      className="group relative w-full max-w-[650px] transition-all duration-300 ease-boing"
     >
-      <motion.div
+      <div
         ref={innerRef}
-        onMouseEnter={handleEnter}
-        onMouseMove={handleMove}
-        onMouseLeave={handleLeave}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         tabIndex={0}
@@ -179,113 +118,75 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
           'relative w-full rounded-2xl overflow-hidden bg-canvas dark:bg-canvas-dark',
           'border border-line dark:border-line-dark',
           'shadow-card dark:shadow-cardDark',
-          'flex flex-col lg:flex-row min-h-[380px] lg:min-h-[400px]',
+          'flex flex-col min-h-[215px] lg:min-h-[225px]',
           'transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-          booped
-            ? 'shadow-lg'
-            : '',
+          'hover:shadow-md hover:-translate-y-0.5',
         ].join(' ')}
         style={{
-          transformStyle: 'preserve-3d',
-          transform: tiltTransform,
           touchAction: 'pan-y',
-          willChange: 'transform',
         }}
       >
-
-        {/* Glare */}
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 transition-opacity duration-200 ease-snappy z-10"
-          style={{
-            opacity: gOpacity,
-            background: glareBackground,
-            mixBlendMode: 'soft-light',
-          }}
-        />
-
-        {/* Shine Sweep */}
-        <div key={shineKey} aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl z-10">
+        {/* Profile Statistics Header Panel */}
+        <div className="w-full border-b border-line dark:border-line-dark p-3 bg-chip/10 dark:bg-chip-dark/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10 overflow-hidden">
+          {/* Centered profile watermark. */}
           <div
-            className="absolute -inset-y-2 -left-1/3 w-1/2 animate-[shineSweep_1200ms_ease-out_forwards]"
-            style={{
-              background:
-                'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.0) 30%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.0) 70%, transparent 100%)',
-              mixBlendMode: 'soft-light',
-            }}
-          />
-        </div>
-
-        {/* ==================== LEFT COLUMN: PROFILE CARD ==================== */}
-        <div className="w-full lg:w-[220px] shrink-0 border-b lg:border-b-0 lg:border-r border-line dark:border-line-dark p-4 sm:p-5 bg-chip/10 dark:bg-chip-dark/15 flex flex-col justify-between gap-4 relative z-10 overflow-hidden">
-          {/* Left Column Parallax Watermark (Knight/Rook) centered to prevent shifting */}
-          <motion.div
             aria-hidden
             className="pointer-events-none absolute inset-0 select-none overflow-hidden rounded-2xl z-0"
-            style={{ transform: watermarkTransform }}
           >
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[200px] leading-none font-serif text-ink/[0.03] dark:text-ink-dark/[0.04] select-none">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[120px] leading-none font-serif text-ink/[0.02] dark:text-ink-dark/[0.03] select-none">
               {data.platform === 'lichess' ? '♞' : '♜'}
-            </div>
-          </motion.div>
-
-          {/* Profile Identity Block */}
-          <div className="space-y-4 relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="relative grid place-items-center h-12 w-12 min-h-[3rem] min-w-[3rem] rounded-full bg-chip dark:bg-chip-dark border border-line dark:border-line-dark text-ink dark:text-ink-dark font-sans text-lg font-bold overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-110 hover:rotate-[6deg]">
-                {data.profile.avatar && !avatarFailed ? (
-                  <img
-                    src={data.profile.avatar}
-                    alt={`Avatar of ${data.profile.username}`}
-                    className="h-full w-full object-cover"
-                    onError={() => setAvatarFailed(true)}
-                  />
-                ) : (
-                  <span className="font-sans font-extrabold text-sm">{initials}</span>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 min-w-0 w-full">
-                  {data.profile.title && (
-                    <span className="inline-flex items-center justify-center h-[18px] px-1.5 rounded text-[9px] font-extrabold tracking-wider bg-[#b33430] text-white uppercase shrink-0">
-                      {data.profile.title}
-                    </span>
-                  )}
-                  <h2 className="font-sans text-[17px] leading-tight font-bold tracking-tight truncate flex-1 min-w-0" title={data.profile.name || data.profile.username}>
-                    {data.profile.name || data.profile.username}
-                  </h2>
-                </div>
-                {(data.profile.name || data.profile.country) && (
-                  <div className="mt-0.5 flex items-center gap-1 text-[11px] text-muted dark:text-muted-dark min-w-0">
-                    {data.profile.name && <span className="truncate min-w-0 flex-shrink">@{data.profile.username}</span>}
-                    {data.profile.country && (
-                      <>
-                        {data.profile.name && <span className="shrink-0">·</span>}
-                        <span className="truncate max-w-[100px] min-w-0" title={data.profile.country}>{data.profile.country}</span>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Platform Badge */}
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-muted dark:text-muted-dark uppercase tracking-wider">Platform</span>
-              <PlatformBadge platform={data.platform} />
             </div>
           </div>
 
-          {/* Archetype Style Badge */}
+          {/* Profile identity credentials container. */}
+          <div className="flex items-center gap-2.5 relative z-10 min-w-0">
+            <div className="relative grid place-items-center h-10 w-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-line dark:border-line-dark text-ink dark:text-ink-dark font-sans text-base font-bold overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
+              {data.profile.avatar && !avatarFailed ? (
+                <img
+                  src={data.profile.avatar}
+                  alt={`Avatar of ${data.profile.username}`}
+                  className="h-full w-full object-cover"
+                  onError={() => setAvatarFailed(true)}
+                />
+              ) : (
+                <span className="font-sans font-extrabold text-xs">{initials}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                {data.profile.title && (
+                  <span className="inline-flex items-center justify-center h-[15px] px-1 rounded text-[8px] font-extrabold tracking-wider bg-[#b33430] text-white uppercase shrink-0">
+                    {data.profile.title}
+                  </span>
+                )}
+                <h2 className="font-sans text-[14.5px] leading-tight font-bold tracking-tight truncate" title={data.profile.name || data.profile.username}>
+                  {data.profile.name || data.profile.username}
+                </h2>
+              </div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted dark:text-muted-dark min-w-0">
+                <span className="truncate flex-shrink">@{data.profile.username}</span>
+                {data.profile.country && (
+                  <>
+                    <span className="shrink-0 text-muted/40">•</span>
+                    <span className="truncate max-w-[90px]" title={data.profile.country}>{data.profile.country}</span>
+                  </>
+                )}
+                <span className="shrink-0 text-muted/40">•</span>
+                <PlatformBadge platform={data.platform} />
+              </div>
+            </div>
+          </div>
+
+          {/* Analytical style designation badge. */}
           {data.insights?.style && (
-            <div className="py-0.5 relative z-10">
-              <StyleBadge style={data.insights.style} sampleSize={data.insights.sampleSize} />
+            <div className="relative z-10 self-start sm:self-center shrink-0">
+              <StyleBadge style={data.insights.style} sampleSize={data.insights.sampleSize} compact />
             </div>
           )}
 
-          {/* Primary stats block (Peak/Current/Puzzle) */}
-          <div className="grid grid-cols-2 gap-2 mt-auto relative z-10">
+          {/* Main rating records and performance indicators. */}
+          <div className="flex items-center gap-1.5 relative z-10 shrink-0">
             <Stat
               label="Peak"
               value={<AnimatedNumber value={data.primary.peak} />}
@@ -303,39 +204,36 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
               subTone={data.primary.prog > 0 ? 'up' : data.primary.prog < 0 ? 'down' : 'neutral'}
             />
             {data.insights?.puzzleRating && (
-              <div className="col-span-2">
-                <Stat
-                  label="Puzzle"
-                  value={<AnimatedNumber value={data.insights.puzzleRating} />}
-                  sub={data.insights.puzzlePercentile ? `top ${data.insights.puzzlePercentile}% Lichess` : 'Lichess'}
-                  icon={<span className="font-serif text-[11px] leading-none">♝</span>}
-                  subTone="up"
-                />
-              </div>
+              <Stat
+                label="Puzzle"
+                value={<AnimatedNumber value={data.insights.puzzleRating} />}
+                sub={data.insights.puzzlePercentile ? `top ${data.insights.puzzlePercentile}%` : 'Puzzles'}
+                icon={<span className="font-serif text-[11px] leading-none">♝</span>}
+                subTone="up"
+              />
             )}
           </div>
         </div>
 
-        {/* ==================== RIGHT COLUMN: TABS & DATA ==================== */}
-        <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between gap-4 relative z-10">
-          {/* Right Column Parallax Watermark (King/Queen) centered to prevent shifting */}
-          <motion.div
+        {/* Analytical Content Panel */}
+        <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-between gap-3 relative z-10">
+          {/* Centered panel details watermark. */}
+          <div
             aria-hidden
             className="pointer-events-none absolute inset-0 select-none overflow-hidden rounded-2xl z-0"
-            style={{ transform: watermarkTransform }}
           >
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[280px] leading-none font-serif text-ink/[0.04] dark:text-ink-dark/[0.05] select-none">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[230px] leading-none font-serif text-ink/[0.04] dark:text-ink-dark/[0.05] select-none">
               {data.platform === 'lichess' ? '♔' : '♕'}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Tab Selection */}
+          {/* Navigation control toggles. */}
           <div className="relative z-10">
             <FaceNav active={face} onSelect={goToStable} />
           </div>
 
-          {/* Swipeable content container */}
-          <div className="relative overflow-hidden flex-1 flex flex-col min-h-[240px] md:min-h-[270px] z-10" aria-live="polite" style={{ contain: 'content' }}>
+          {/* Panel transitions container. */}
+          <div className="relative overflow-hidden flex-1 flex flex-col min-h-[135px] md:min-h-[145px] z-10" aria-live="polite" style={{ contain: 'content' }}>
             <motion.div
               className="flex h-full"
               animate={{ x: `-${face * 100}%` }}
@@ -354,7 +252,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
             </motion.div>
           </div>
 
-          {/* Footer */}
+          {/* Section footer branding and references */}
           <footer className="relative z-10 flex items-center justify-between pt-1 gap-2 flex-wrap border-t-2 border-line/50 dark:border-line-dark/50">
             <LiveBadge
               fetchedAt={data.fetchedAt}
@@ -367,7 +265,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
             </span>
           </footer>
         </div>
-      </motion.div>
+      </div>
 
       {tooltipContent && (
         <motion.div
@@ -382,14 +280,16 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
         </motion.div>
       )}
 
-      {/* Swipe buttons */}
+      {/* Mobile-focused slider controls */}
       <ArrowButton direction="prev" onClick={() => goToStable(face - 1)} disabled={face === 0} />
       <ArrowButton direction="next" onClick={() => goToStable(face + 1)} disabled={face === FACES.length - 1} />
     </div>
   )
 }
 
-/* ----------------- Navigation chrome ----------------- */
+/* ----------------------------------------------------------------------------
+ * 1. UI Navigation Components
+ * ---------------------------------------------------------------------------- */
 
 const FaceNav = React.memo(function FaceNav({ active, onSelect }) {
   return (
@@ -456,68 +356,76 @@ const Face = React.memo(function Face({ children }) {
   )
 })
 
-/* ----------------- Sub Tabs ----------------- */
+/* ----------------------------------------------------------------------------
+ * 2. Tab Panel Child Elements
+ * ---------------------------------------------------------------------------- */
 
 const OverviewTab = React.memo(function OverviewTab({ data, onHover }) {
   return (
     <div className="h-full overflow-y-auto pr-1 space-y-4 scrollbar-thin" style={{ scrollbarGutter: 'stable' }}>
-      {/* Time controls comparison grid */}
+      {/* Time format stats grid container. */}
       {data.perFormat?.length > 1 && (
         <Section delay={40}>
           <TimeControlGrid perFormat={data.perFormat} primaryKey={data.primary.key} onHover={onHover} />
         </Section>
       )}
 
-      {/* Streak + Best Opening stats side by side */}
+      {/* Streak and opening statistics cells. */}
       <Section delay={120}>
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-xl border border-line dark:border-line-dark p-3 min-h-[96px] flex flex-col justify-between transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-pixel-yellow/50 hover:shadow-sm">
-            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
-              <span className="flex items-center gap-1.5">
-                <Flame className="h-3 w-3 text-pixel-yellow" />
-                Streak
-              </span>
+          <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between gap-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-pixel-yellow/50 hover:shadow-sm">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
+                <Flame className="h-3 w-3 text-pixel-yellow shrink-0" />
+                <span className="truncate">Streak</span>
+              </div>
+              <div className="mt-1.5 font-sans text-[18px] leading-none font-extrabold tracking-tight">
+                {formatStreak(data.streak)}
+              </div>
+            </div>
+            <div className="text-right shrink-0 flex flex-col items-end gap-1 text-[9.5px] text-muted dark:text-muted-dark">
               {data.insights?.longestStreak?.length > 0 && (
-                <span className="text-[9px] text-muted dark:text-muted-dark tabular-nums normal-case font-medium tracking-normal">
+                <span className="text-[8.5px] tabular-nums font-semibold bg-pixel-yellow/10 dark:bg-pixel-yellow/20 text-ink dark:text-ink-dark rounded px-1 py-0.5">
                   best {data.insights.longestStreak.type}{data.insights.longestStreak.length}
                 </span>
               )}
-            </div>
-            <div className="mt-1 font-sans text-[20px] leading-none font-extrabold tracking-tight">
-              {formatStreak(data.streak)}
-            </div>
-            <div className="text-[10px] text-muted dark:text-muted-dark">
-              {data.streak.sign === 'W' ? 'consecutive wins' : data.streak.sign === 'L' ? 'consecutive losses' : 'even'}
+              <span className="leading-none text-[9.5px]">
+                {data.streak.sign === 'W' ? 'consecutive wins' : data.streak.sign === 'L' ? 'consecutive losses' : 'even'}
+              </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-line dark:border-line-dark p-3 min-h-[96px] flex flex-col justify-between transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-pixel-red/50 hover:shadow-sm">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
-              <Spark className="h-3 w-3 text-pixel-red" />
-              Best opening
+          <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between gap-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-pixel-red/50 hover:shadow-sm">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
+                <Spark className="h-3 w-3 text-pixel-red shrink-0" />
+                <span className="truncate">Best opening</span>
+              </div>
+              <div className="mt-1.5 font-sans text-[12.5px] leading-tight font-extrabold tracking-tight truncate max-w-[150px] sm:max-w-[200px]" title={data.insights?.signatureOpening?.name || data.topOpening || '—'}>
+                {data.insights?.signatureOpening?.name || data.topOpening || '—'}
+              </div>
             </div>
-            <div className="mt-1 font-sans text-[12px] sm:text-[13px] leading-tight font-bold tracking-tight truncate" title={data.insights?.signatureOpening?.name || data.topOpening || '—'}>
-              {data.insights?.signatureOpening?.name || data.topOpening || '—'}
-            </div>
-            <div className="text-[10px] text-muted dark:text-muted-dark tabular-nums">
+            <div className="text-right shrink-0 flex flex-col items-end gap-1 text-[9.5px] text-muted dark:text-muted-dark">
               {data.insights?.signatureOpening ? (
                 <>
-                  <span className="text-emerald-700 dark:text-emerald-300 font-semibold">
-                    {Math.round(data.insights.signatureOpening.winRate * 100)}%
-                  </span>{' '}
-                  · {data.insights.signatureOpening.games}g
+                  <span className="text-emerald-700 dark:text-emerald-300 font-bold text-[10.5px]">
+                    {Math.round(data.insights.signatureOpening.winRate * 100)}% WR
+                  </span>
+                  <span className="text-[9px] tabular-nums font-semibold bg-chip dark:bg-chip-dark px-1 py-0.5 rounded">
+                    {data.insights.signatureOpening.games} games
+                  </span>
                 </>
               ) : data.topOpeningGames ? (
-                <>{compactNumber(data.topOpeningGames)} games</>
+                <span className="font-semibold text-ink dark:text-ink-dark">{compactNumber(data.topOpeningGames)} games</span>
               ) : (
-                '—'
+                <span>—</span>
               )}
             </div>
           </div>
         </div>
       </Section>
 
-      {/* Recent Form */}
+      {/* Recent match result list. */}
       {data.recentForm?.length > 0 && (
         <Section delay={200}>
           <div className="rounded-xl border border-line dark:border-line-dark p-3">
@@ -545,7 +453,7 @@ const RepertoireTab = React.memo(function RepertoireTab({ data, onHover }) {
 
   return (
     <div className="h-full overflow-y-auto pr-1 space-y-4 scrollbar-thin" style={{ scrollbarGutter: 'stable' }}>
-      {/* Ratio bar */}
+      {/* Cumulative record ratio chart. */}
       <Section delay={40}>
         <div>
           <div className="flex items-center justify-between mb-1.5">
@@ -590,14 +498,14 @@ const RepertoireTab = React.memo(function RepertoireTab({ data, onHover }) {
         </div>
       </Section>
 
-      {/* Color Split */}
+      {/* Win-loss details relative to playing color. */}
       {data.insights?.colorSplit && (
         <Section delay={120}>
           <ColorSplit data={data.insights.colorSplit} />
         </Section>
       )}
 
-      {/* First Move */}
+      {/* Preferred initial move distribution. */}
       {data.insights?.firstMove?.length > 0 && (
         <Section delay={200}>
           <FirstMove data={data.insights.firstMove} />
@@ -610,9 +518,9 @@ const RepertoireTab = React.memo(function RepertoireTab({ data, onHover }) {
 const InsightsTab = React.memo(function InsightsTab({ data, isDark, onHover }) {
   return (
     <div className="h-full overflow-y-auto pr-1 space-y-4 scrollbar-thin" style={{ scrollbarGutter: 'stable' }}>
-      {/* Average Game Length */}
+      {/* Game length average. */}
       <Section delay={40}>
-        <div className="rounded-xl border border-line dark:border-line-dark p-3.5 flex items-center justify-between bg-gradient-to-r from-accent-soft/20 to-transparent dark:from-accent-softDark/10">
+        <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between bg-accent-soft/30 dark:bg-accent-softDark/20">
           <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
             Average Game Length
           </span>
@@ -622,28 +530,28 @@ const InsightsTab = React.memo(function InsightsTab({ data, isDark, onHover }) {
         </div>
       </Section>
 
-      {/* Win Rate by Length */}
+      {/* Game outcome distribution categorized by moves length. */}
       {data.insights?.lengthBuckets?.some((b) => b.games > 0) && (
         <Section delay={100}>
           <WinRateByLength data={data.insights.lengthBuckets} isDark={isDark} onHover={onHover} />
         </Section>
       )}
 
-      {/* Beating the Odds */}
+      {/* Performance stats against higher-rated players. */}
       {data.insights?.beatingOdds && (
         <Section delay={160}>
           <BeatingTheOdds data={data.insights.beatingOdds} isDark={isDark} />
         </Section>
       )}
 
-      {/* Time of Day */}
+      {/* Match count distribution by hour. */}
       {data.insights?.hourlyPlay?.length > 0 && (
         <Section delay={220}>
           <TimeOfDay hourlyPlay={data.insights.hourlyPlay} peakHour={data.insights.peakHour} isDark={isDark} onHover={onHover} />
         </Section>
       )}
 
-      {/* Toughest Opponent */}
+      {/* Record summary against peak rated opponent. */}
       {data.insights?.toughestOpponent && (
         <Section delay={280}>
           <ToughestOpponent data={data.insights.toughestOpponent} userRating={data.primary.rating} />
@@ -653,10 +561,12 @@ const InsightsTab = React.memo(function InsightsTab({ data, isDark, onHover }) {
   )
 })
 
-/* ----------------- Atoms ----------------- */
+/* ----------------------------------------------------------------------------
+ * 3. Base Atom Components
+ * ---------------------------------------------------------------------------- */
 
 const Section = React.memo(function Section({ children, delay = 0 }) {
-  const reduce = useReducedMotion()
+  const reduce = useSafeReducedMotion()
   return (
     <motion.div
       initial={reduce ? false : { opacity: 0, y: 6 }}
@@ -685,7 +595,7 @@ function Bar({ width, delay, className, onMouseEnter, onMouseMove, onMouseLeave 
 }
 
 const Stat = React.memo(function Stat({ label, value, sub, icon, emphasis = false, subTone = 'neutral' }) {
-  const reduce = useReducedMotion()
+  const reduce = useSafeReducedMotion()
   const subColor =
     subTone === 'up'
       ? 'text-emerald-700 dark:text-emerald-300'
@@ -694,24 +604,26 @@ const Stat = React.memo(function Stat({ label, value, sub, icon, emphasis = fals
       : 'text-muted dark:text-muted-dark'
   return (
     <motion.div
-      whileHover={reduce ? {} : { y: -2, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
+      whileHover={reduce ? {} : { y: -1, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
       className={[
-        'rounded-xl border border-line dark:border-line-dark p-2.5 min-w-0 flex flex-col',
+        'rounded-lg border border-line dark:border-line-dark py-1 px-2.5 min-w-0 flex items-center gap-2',
         'transition-all duration-200 ease-out',
         'hover:shadow-sm',
         emphasis
-          ? 'bg-gradient-to-br from-accent-soft/45 to-transparent dark:from-accent-softDark/20'
-          : '',
+          ? 'bg-accent-soft/45 dark:bg-accent-softDark/30'
+          : 'bg-chip/5 dark:bg-chip-dark/5',
       ].join(' ')}
     >
-      <div className="flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
-        {icon}
-        {label}
-      </div>
-      <div className="mt-1 font-sans text-[18px] sm:text-[20px] leading-none font-extrabold tracking-tight">
+      <div className="font-sans text-[15px] sm:text-[16px] leading-none font-extrabold tracking-tight shrink-0 text-ink dark:text-ink-dark">
         {value}
       </div>
-      {sub && <div className={['mt-0.5 text-[9.5px] sm:text-[10px] truncate tabular-nums font-semibold', subColor].join(' ')} title={sub}>{sub}</div>}
+      <div className="flex flex-col min-w-0 leading-tight">
+        <div className="flex items-center gap-0.5 text-[8px] font-extrabold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
+          <span className="shrink-0">{icon}</span>
+          <span className="truncate">{label}</span>
+        </div>
+        {sub && <div className={['text-[8.5px] truncate tabular-nums font-semibold', subColor].join(' ')} title={sub}>{sub}</div>}
+      </div>
     </motion.div>
   )
 })
@@ -731,18 +643,20 @@ const RatioCell = React.memo(function RatioCell({ label, value, pct, tone, delay
       : 'bg-amber-500 dark:bg-amber-400'
   return (
     <div
-      className="rounded-lg border border-line dark:border-line-dark px-2 py-1.5 flex flex-col items-start hover:-translate-y-0.5 transition-all duration-200 ease-out"
+      className="rounded-lg border border-line dark:border-line-dark px-2 py-1 flex items-center justify-between gap-1.5 hover:-translate-y-0.5 transition-all duration-200 ease-out"
       style={{ animation: `punchIn 400ms cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms backwards` }}
     >
-      <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-muted dark:text-muted-dark whitespace-nowrap">
-        <span className={['h-1.5 w-1.5 rounded-full shrink-0', dotClass].join(' ')} />
-        {label}
+      <div className="min-w-0">
+        <div className="flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark whitespace-nowrap">
+          <span className={['h-1.5 w-1.5 rounded-full shrink-0', dotClass].join(' ')} />
+          {label}
+        </div>
+        <div className="mt-0.5 font-sans text-[12px] sm:text-[13px] leading-none font-extrabold tabular-nums">
+          {compactNumber(value)}
+        </div>
       </div>
-      <div className="mt-1 font-sans text-[13px] sm:text-[14px] leading-none font-extrabold tabular-nums">
-        {compactNumber(value)}
-      </div>
-      <div className={['mt-0.5 text-[9px] sm:text-[9.5px] tabular-nums font-semibold', toneClass].join(' ')}>
-        {formatPercent(pct, 1)}
+      <div className={['text-[9px] sm:text-[9.5px] font-extrabold tabular-nums shrink-0', toneClass].join(' ')}>
+        {formatPercent(pct, 0)}
       </div>
     </div>
   )
