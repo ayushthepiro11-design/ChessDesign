@@ -6,7 +6,7 @@
  * The whole card has a "punchIn" entrance and a small "boing" hover lift
  * to keep the cartoonish feel.
  */
-export default function StyleBadge({ style, sampleSize = 0 }) {
+export default function StyleBadge({ style, sampleSize = 0, compact = false }) {
   if (!style) return null
 
   const { archetype, icon, tagline, tone = 'subtle' } = style
@@ -40,6 +40,23 @@ export default function StyleBadge({ style, sampleSize = 0 }) {
     },
   }
   const t = toneStyles[tone] || toneStyles.subtle
+
+  if (compact) {
+    return (
+      <div
+        className={[
+          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shrink-0',
+          t.bg,
+          t.ring,
+          t.text,
+        ].join(' ')}
+        title={`${archetype} · ${sampleSize} games`}
+      >
+        <span className="font-serif text-[12px] leading-none">{icon}</span>
+        <span>{archetype}</span>
+      </div>
+    )
+  }
 
   return (
     <div
