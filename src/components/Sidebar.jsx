@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Bolt, Logo, Moon, Search, Sun } from './Icons'
 
 /**
- * Sidebar — the left control panel. Cartoonish-leaning: chunky 3D buttons,
- * bouncy springs, dramatic hover lifts, wiggling icons.
+ * Sidebar control panel component.
+ * Exposes parameters for profile selection, platform search, and app configurations.
  */
 export default function Sidebar({
   platform,
@@ -28,9 +28,18 @@ export default function Sidebar({
   const [submitAttempted, setSubmitAttempted] = useState(false)
   const ctaRef = useRef(null)
   const [ripples, setRipples] = useState([])
-  // Track all scheduled timeouts so we can clear them on unmount and avoid
-  // setState on a torn-down component (React 18 just warns, but it's still
-  // wrong).
+
+  const [localUsername, setLocalUsername] = useState(username)
+  const [localUsername2, setLocalUsername2] = useState(username2)
+
+  useEffect(() => {
+    setLocalUsername(username)
+  }, [username])
+
+  useEffect(() => {
+    setLocalUsername2(username2)
+  }, [username2])
+  // Track active timers to prevent memory leaks and state updates on unmounted components.
   const timersRef = useRef(new Set())
 
   useEffect(() => {
@@ -53,14 +62,18 @@ export default function Sidebar({
   const handleSubmit = useCallback((e) => {
     e.preventDefault()
     setSubmitAttempted(true)
+    
+    setUsername(localUsername)
+    setUsername2(localUsername2)
+
     if (isCompare) {
-      if (username.trim().length === 0 || username2.trim().length === 0) return
+      if (localUsername.trim().length === 0 || localUsername2.trim().length === 0) return
       onGenerateCompare()
     } else {
-      if (username.trim().length === 0) return
+      if (localUsername.trim().length === 0) return
       onGenerate()
     }
-  }, [isCompare, username, username2, onGenerate, onGenerateCompare])
+  }, [isCompare, localUsername, localUsername2, setUsername, setUsername2, onGenerate, onGenerateCompare])
 
   const handleCtaClick = useCallback((e) => {
     const el = ctaRef.current
@@ -79,14 +92,15 @@ export default function Sidebar({
   return (
     <aside
       className={[
-        'z-30 flex flex-col overflow-y-auto scrollbar-thin transition-all duration-300 ease-in-out',
+        'fixed inset-y-0 left-0 z-30 flex flex-col h-screen w-[300px] sm:w-[320px] bg-canvas/95 dark:bg-canvas-dark/95 shadow-2xl border-r border-line dark:border-line-dark transition-all duration-300 ease-in-out overflow-y-auto scrollbar-thin',
+        'lg:relative lg:translate-x-0 lg:shadow-none lg:sticky lg:top-0 lg:h-screen lg:bg-chip/40 lg:dark:bg-chip-dark/20 lg:backdrop-blur',
         isOpen
-          ? 'w-full lg:w-[320px] lg:shrink-0 border-b lg:border-b-0 lg:border-r border-line dark:border-line-dark bg-chip/40 dark:bg-chip-dark/20 backdrop-blur lg:h-screen lg:sticky lg:top-0 opacity-100'
-          : 'w-0 h-0 lg:w-0 lg:h-screen opacity-0 border-b-0 lg:border-r-0 overflow-hidden pointer-events-none',
+          ? 'translate-x-0 opacity-100 pointer-events-auto lg:w-[320px] lg:shrink-0'
+          : 'translate-x-[-100%] opacity-0 pointer-events-none lg:w-0 lg:opacity-0 lg:pointer-events-none lg:overflow-hidden lg:border-r-0',
       ].join(' ')}
     >
       <div className="flex-1 flex flex-col p-5 sm:p-6 gap-6">
-        {/* Top: logo + theme toggle */}
+        {/* Brand identity and theme toggler */}
         <div className="flex items-center justify-between min-h-[40px]">
           <button
             type="button"
@@ -116,12 +130,12 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Intro line */}
+        {/* Introduction overview */}
         <p className="text-[13px] leading-relaxed text-muted dark:text-muted-dark font-sans">
           Turn your <span className="text-ink dark:text-ink-dark font-bold">chess profile</span> into a clean, shareable stat card.
         </p>
 
-        {/* Mode Toggle */}
+        {/* Mode selector */}
         <div className="space-y-2">
           <Label>Mode</Label>
           <div
@@ -165,7 +179,7 @@ export default function Sidebar({
 
         {!isCompare ? (
           <>
-            {/* Platform toggle */}
+            {/* Platform selection */}
             <div className="space-y-2">
               <Label>Platform</Label>
               <div
@@ -187,7 +201,7 @@ export default function Sidebar({
               </div>
             </div>
 
-            {/* Username input */}
+            {/* Username credential settings */}
             <form onSubmit={handleSubmit} className="space-y-2.5">
               <Label htmlFor={id}>Username</Label>
               <div className="relative group">
@@ -197,16 +211,17 @@ export default function Sidebar({
                   type="text"
                   autoComplete="off"
                   spellCheck={false}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={localUsername}
+                  onChange={(e) => setLocalUsername(e.target.value)}
+                  onBlur={() => setUsername(localUsername)}
                   placeholder={platform === 'lichess' ? 'e.g. DrNykterstein' : 'e.g. hikaru'}
                   className="field pl-9 py-2.5"
-                  aria-invalid={submitAttempted && username.trim().length === 0}
+                  aria-invalid={submitAttempted && localUsername.trim().length === 0}
                 />
-                {username && (
+                {localUsername && (
                   <button
                     type="button"
-                    onClick={() => setUsername('')}
+                    onClick={() => { setLocalUsername(''); setUsername(''); }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-6 w-6 rounded text-muted hover:text-ink hover:bg-chip dark:hover:text-ink-dark dark:hover:bg-chip-dark transition-colors duration-150"
                     aria-label="Clear username"
                   >
@@ -216,7 +231,7 @@ export default function Sidebar({
                   </button>
                 )}
               </div>
-              {submitAttempted && username.trim().length === 0 && (
+              {submitAttempted && localUsername.trim().length === 0 && (
                 <p className="text-xs text-rose-500 dark:text-rose-400 animate-fadeUp">Please enter a username.</p>
               )}
 
@@ -249,7 +264,7 @@ export default function Sidebar({
           </>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Player 1 Block */}
+            {/* Player profile 1 credentials */}
             <div className="space-y-3 p-3.5 rounded-xl border border-line dark:border-line-dark bg-chip/35 dark:bg-chip-dark/20">
               <Label>Player 1</Label>
               <div
@@ -288,19 +303,20 @@ export default function Sidebar({
                   type="text"
                   autoComplete="off"
                   spellCheck={false}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={localUsername}
+                  onChange={(e) => setLocalUsername(e.target.value)}
+                  onBlur={() => setUsername(localUsername)}
                   placeholder="Player 1 Username"
                   className="field py-2"
-                  aria-invalid={submitAttempted && username.trim().length === 0}
+                  aria-invalid={submitAttempted && localUsername.trim().length === 0}
                 />
               </div>
-              {submitAttempted && username.trim().length === 0 && (
+              {submitAttempted && localUsername.trim().length === 0 && (
                 <p className="text-[11px] text-rose-500 dark:text-rose-400 animate-fadeUp">Enter Player 1 username.</p>
               )}
             </div>
 
-            {/* Player 2 Block */}
+            {/* Player profile 2 credentials */}
             <div className="space-y-3 p-3.5 rounded-xl border border-line dark:border-line-dark bg-chip/35 dark:bg-chip-dark/20">
               <Label>Player 2</Label>
               <div
@@ -339,19 +355,20 @@ export default function Sidebar({
                   type="text"
                   autoComplete="off"
                   spellCheck={false}
-                  value={username2}
-                  onChange={(e) => setUsername2(e.target.value)}
+                  value={localUsername2}
+                  onChange={(e) => setLocalUsername2(e.target.value)}
+                  onBlur={() => setUsername2(localUsername2)}
                   placeholder="Player 2 Username"
                   className="field py-2"
-                  aria-invalid={submitAttempted && username2.trim().length === 0}
+                  aria-invalid={submitAttempted && localUsername2.trim().length === 0}
                 />
               </div>
-              {submitAttempted && username2.trim().length === 0 && (
+              {submitAttempted && localUsername2.trim().length === 0 && (
                 <p className="text-[11px] text-rose-500 dark:text-rose-400 animate-fadeUp">Enter Player 2 username.</p>
               )}
             </div>
 
-            {/* Compare Button */}
+            {/* Action trigger controls */}
             <button
               ref={ctaRef}
               type="submit"
