@@ -33,7 +33,7 @@ export default function BeatingTheOdds({ data, isDark: isDarkProp }) {
       className={[
         'rounded-xl border-2 border-line dark:border-line-dark p-3.5',
         'transition-all duration-300 ease-boing',
-        'hover:-translate-y-0.5 hover:border-emerald-400/60 hover:shadow-[0_10px_22px_-8px_rgba(16,185,129,0.3)]',
+        'hover:border-emerald-400/60 hover:shadow-[0_10px_22px_-8px_rgba(16,185,129,0.3)]',
       ].join(' ')}
       style={{ animation: 'punchIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms backwards' }}
     >

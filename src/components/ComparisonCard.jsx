@@ -141,7 +141,7 @@ export default function ComparisonCard({
           'flex flex-col min-h-[210px] lg:min-h-[220px]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
           'transition-all duration-200',
-          'hover:shadow-md hover:-translate-y-0.5',
+          'hover:shadow-md',
         ].join(' ')}
         style={{
           touchAction: 'pan-y',

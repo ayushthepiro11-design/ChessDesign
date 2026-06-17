@@ -63,7 +63,6 @@ export default function StyleBadge({ style, sampleSize = 0, compact = false }) {
       className={[
         'group relative overflow-hidden rounded-2xl border-2 p-4 sm:p-5',
         'transition-all duration-300 ease-boing',
-        'hover:-translate-y-0.5',
         t.bg,
         t.ring,
         t.glow,
@@ -89,8 +88,8 @@ export default function StyleBadge({ style, sampleSize = 0, compact = false }) {
             'shrink-0 grid place-items-center h-12 w-12 rounded-xl',
             'border-2 border-line dark:border-line-dark',
             'bg-canvas dark:bg-canvas-dark',
-            'shadow-[0_3px_0_0_rgba(28,25,23,0.18)] dark:shadow-[0_3px_0_0_rgba(0,0,0,0.6)]',
-            'transition-transform duration-300 ease-boing group-hover:-rotate-3 group-hover:-translate-y-0.5',
+            'shadow-sm',
+            'transition-transform duration-300 ease-boing',
           ].join(' ')}
         >
           <span className={['font-serif text-[26px] leading-none', t.text].join(' ')}>{icon}</span>

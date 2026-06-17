@@ -121,7 +121,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
           'flex flex-col min-h-[215px] lg:min-h-[225px]',
           'transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-          'hover:shadow-md hover:-translate-y-0.5',
+          'hover:shadow-md',
         ].join(' ')}
         style={{
           touchAction: 'pan-y',

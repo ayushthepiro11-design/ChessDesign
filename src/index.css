@@ -65,7 +65,6 @@
     @apply relative inline-flex items-center justify-center gap-2
            bg-accent text-white
            hover:brightness-105 active:scale-[0.98]
-           border-b-[3px] border-[#68953C] dark:border-[#537730]
            px-4 py-2.5 text-sm font-bold uppercase tracking-wider rounded-lg
            transition-all duration-150 shadow-sm;
   }

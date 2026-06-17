@@ -63,20 +63,20 @@ export default function GeneratingFX({ events = [] }) {
           <div className="absolute inset-10 rounded-full border-2 border-dashed border-muted/50 dark:border-muted-dark/50" />
 
           {/* Center node with static knight */}
-          <div className="relative h-14 w-14 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark grid place-items-center font-serif text-3xl shadow-[0_4px_0_0_rgba(28,25,23,0.85),0_8px_18px_-4px_rgba(28,25,23,0.4)]">
+          <div className="relative h-14 w-14 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark grid place-items-center font-serif text-3xl shadow-md">
             <span className="inline-block">♞</span>
           </div>
 
           {/* Orbiting rook (static) */}
           <div className="absolute inset-0">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-xl font-serif shadow-[0_3px_0_0_rgba(28,25,23,0.1),0_4px_10px_-2px_rgba(28,25,23,0.15)]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-xl font-serif shadow-sm">
               ♜
             </div>
           </div>
 
           {/* Orbiting bishop (static) */}
           <div className="absolute inset-3">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-base font-serif shadow-[0_3px_0_0_rgba(28,25,23,0.1),0_4px_10px_-2px_rgba(28,25,23,0.15)]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-base font-serif shadow-sm">
               ♝
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function GeneratingFX({ events = [] }) {
 
         {/* Live API call log */}
         {events.length > 0 && (
-          <div className="w-full max-w-sm rounded-xl border-2 border-line dark:border-line-dark bg-canvas/60 dark:bg-canvas-dark/60 backdrop-blur overflow-hidden shadow-[0_4px_0_0_rgba(28,25,23,0.05)]">
+          <div className="w-full max-w-sm rounded-xl border-2 border-line dark:border-line-dark bg-canvas/60 dark:bg-canvas-dark/60 backdrop-blur overflow-hidden shadow-sm">
             <div className="px-3 py-1.5 border-b-2 border-line dark:border-line-dark text-[10.5px] uppercase tracking-[0.08em] text-muted dark:text-muted-dark font-semibold flex items-center justify-between">
               <span>API call log</span>
               <span className="font-mono normal-case tracking-normal">
@@ -174,7 +174,7 @@ export default function GeneratingFX({ events = [] }) {
         />
 
         {/* Center node with hopping knight */}
-        <div className="relative h-14 w-14 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark grid place-items-center font-serif text-3xl shadow-[0_4px_0_0_rgba(28,25,23,0.85),0_8px_18px_-4px_rgba(28,25,23,0.4)]">
+        <div className="relative h-14 w-14 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark grid place-items-center font-serif text-3xl shadow-md">
           <motion.span
             className="inline-block"
             animate={{
@@ -195,7 +195,7 @@ export default function GeneratingFX({ events = [] }) {
           transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
           style={{ willChange: 'transform' }}
         >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-xl font-serif shadow-[0_3px_0_0_rgba(28,25,23,0.1),0_4px_10px_-2px_rgba(28,25,23,0.15)]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-xl font-serif shadow-sm">
              ♜
           </div>
         </motion.div>
@@ -207,7 +207,7 @@ export default function GeneratingFX({ events = [] }) {
           transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
           style={{ willChange: 'transform' }}
         >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-base font-serif shadow-[0_3px_0_0_rgba(28,25,23,0.1),0_4px_10px_-2px_rgba(28,25,23,0.15)]">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-canvas dark:bg-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center text-base font-serif shadow-sm">
             ♝
           </div>
         </motion.div>
@@ -230,7 +230,7 @@ export default function GeneratingFX({ events = [] }) {
 
       {/* Live API call log */}
       {events.length > 0 && (
-        <div className="w-full max-w-sm rounded-xl border-2 border-line dark:border-line-dark bg-canvas/60 dark:bg-canvas-dark/60 backdrop-blur overflow-hidden shadow-[0_4px_0_0_rgba(28,25,23,0.05)]">
+        <div className="w-full max-w-sm rounded-xl border-2 border-line dark:border-line-dark bg-canvas/60 dark:bg-canvas-dark/60 backdrop-blur overflow-hidden shadow-sm">
           <div className="px-3 py-1.5 border-b-2 border-line dark:border-line-dark text-[10.5px] uppercase tracking-[0.08em] text-muted dark:text-muted-dark font-semibold flex items-center justify-between">
             <span>API call log</span>
             <span className="font-mono normal-case tracking-normal">
