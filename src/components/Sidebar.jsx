@@ -68,12 +68,12 @@ export default function Sidebar({
 
     if (isCompare) {
       if (localUsername.trim().length === 0 || localUsername2.trim().length === 0) return
-      onGenerateCompare()
+      onGenerateCompare(localUsername, platform, localUsername2, platform2)
     } else {
       if (localUsername.trim().length === 0) return
-      onGenerate()
+      onGenerate(localUsername, platform)
     }
-  }, [isCompare, localUsername, localUsername2, setUsername, setUsername2, onGenerate, onGenerateCompare])
+  }, [isCompare, localUsername, platform, localUsername2, platform2, setUsername, setUsername2, onGenerate, onGenerateCompare])
 
   const handleCtaClick = useCallback((e) => {
     const el = ctaRef.current

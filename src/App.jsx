@@ -180,13 +180,14 @@ export default function App() {
     setIsRefreshing(false)
   }, [isCompare])
 
-  const runFetch = useCallback(async ({ force = false, isRefresh = false } = {}) => {
-    // Read current values from refs so this callback doesn't depend on
+  const runFetch = useCallback(async ({ force = false, isRefresh = false, customPlatform = null, customUsername = null, customPlatform2 = null, customUsername2 = null } = {}) => {
+    // Read current values from refs or custom overrides so this callback doesn't depend on
     // platform/username state directly (avoids identity churn on keystrokes).
-    const _platform = platformRef.current
-    const _username = usernameRef.current
-    const _platform2 = platform2Ref.current
-    const _username2 = username2Ref.current
+    const _platform = customPlatform || platformRef.current
+    const _username = customUsername !== null ? customUsername : usernameRef.current
+    const _platform2 = customPlatform2 || platform2Ref.current
+    const _username2 = customUsername2 !== null ? customUsername2 : username2Ref.current
+
     const _isCompare = isCompareRef.current
 
     if (!_username.trim()) return
@@ -362,26 +363,39 @@ export default function App() {
     successTimerRef.current = window.setTimeout(() => setJustGenerated(false), 1800)
   }, [queryClient])
 
-  const handleGenerate = () => {
+  const handleGenerate = (optUsername = null, optPlatform = null) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsSidebarOpen(false)
     }
+    const targetUsername = optUsername !== null ? optUsername : username
+    const targetPlatform = optPlatform !== null ? optPlatform : platform
     const isSameUser = data?.profile &&
-      data.profile.username.toLowerCase() === username.trim().toLowerCase() &&
-      data.platform === platform
-    runFetch({ force: isSameUser, isRefresh: false })
+      data.profile.username.toLowerCase() === targetUsername.trim().toLowerCase() &&
+      data.platform === targetPlatform
+    runFetch({ force: isSameUser, isRefresh: false, customUsername: targetUsername, customPlatform: targetPlatform })
   }
 
-  const handleGenerateCompare = () => {
+  const handleGenerateCompare = (optUsername = null, optPlatform = null, optUsername2 = null, optPlatform2 = null) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsSidebarOpen(false)
     }
+    const targetUsername = optUsername !== null ? optUsername : username
+    const targetPlatform = optPlatform !== null ? optPlatform : platform
+    const targetUsername2 = optUsername2 !== null ? optUsername2 : username2
+    const targetPlatform2 = optPlatform2 !== null ? optPlatform2 : platform2
     const isSameUser = data?.profile && data2?.profile &&
-      data.profile.username.toLowerCase() === username.trim().toLowerCase() &&
-      data.platform === platform &&
-      data2.profile.username.toLowerCase() === username2.trim().toLowerCase() &&
-      data2.platform === platform2
-    runFetch({ force: isSameUser, isRefresh: false })
+      data.profile.username.toLowerCase() === targetUsername.trim().toLowerCase() &&
+      data.platform === targetPlatform &&
+      data2.profile.username.toLowerCase() === targetUsername2.trim().toLowerCase() &&
+      data2.platform === targetPlatform2
+    runFetch({
+      force: isSameUser,
+      isRefresh: false,
+      customUsername: targetUsername,
+      customPlatform: targetPlatform,
+      customUsername2: targetUsername2,
+      customPlatform2: targetPlatform2
+    })
   }
 
   const handleRefresh = () => runFetch({ force: true, isRefresh: true })
