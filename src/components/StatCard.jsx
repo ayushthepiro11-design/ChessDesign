@@ -147,6 +147,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
                   src={data.profile.avatar}
                   alt={`Avatar of ${data.profile.username}`}
                   className="h-full w-full object-cover"
+                  loading="lazy"
                   onError={() => setAvatarFailed(true)}
                 />
               ) : (

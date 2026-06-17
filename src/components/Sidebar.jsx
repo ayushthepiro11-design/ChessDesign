@@ -104,7 +104,9 @@ export default function Sidebar({
         <div className="flex items-center justify-between min-h-[40px]">
           <button
             type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => {
+              if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
             className="group flex items-center gap-2 -m-1.5 p-1.5 rounded-lg hover:bg-chip dark:hover:bg-chip-dark transition-all duration-150"
             aria-label="Scroll to top"
           >

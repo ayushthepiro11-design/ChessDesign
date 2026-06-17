@@ -5,6 +5,8 @@ import { Flame, Spark, Trophy } from './Icons'
 import AnimatedNumber from './AnimatedNumber'
 import LiveBadge from './LiveBadge'
 import { compactNumber, formatPercent, formatStreak } from '../lib/format'
+import StyleBadge from './StyleBadge'
+
 
 const FACES = [
   { key: 'ratings',    label: 'Formats' },
@@ -123,7 +125,7 @@ export default function ComparisonCard({
     <div
       ref={cardRef}
       id="chesscard-canvas"
-      className="group relative w-full max-w-[760px] transition-transform duration-300 ease-boing"
+      className="group relative w-full max-w-[720px] sm:max-w-[760px] transition-transform duration-300 ease-boing"
     >
       <div
         ref={innerRef}
@@ -159,23 +161,23 @@ export default function ComparisonCard({
         </div>
 
         {/* Top Header Panel: Player 1 Profile & Ratings VS Player 2 Profile & Ratings */}
-        <div className="w-full border-b border-line dark:border-line-dark p-3.5 bg-chip/5 dark:bg-chip-dark/10 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10 overflow-hidden">
+        <div className="w-full border-b border-line dark:border-line-dark p-2.5 sm:p-3.5 bg-chip/5 dark:bg-chip-dark/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10 overflow-hidden">
           
           {/* Player 1 details */}
-          <div className="flex items-center gap-3 min-w-0 flex-1 border-l-4 border-l-pixel-red pl-2.5 md:border-l-0 md:pl-0">
-            <div className="relative grid place-items-center h-10 w-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-red overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 border-l-4 border-l-pixel-red pl-2.5 sm:border-l-0 sm:pl-0">
+            <div className="relative grid place-items-center h-9 w-9 sm:h-10 sm:w-10 min-h-[2.25rem] sm:min-h-[2.5rem] min-w-[2.25rem] sm:min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-red overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
               {data1.profile.avatar && !avatar1Failed ? (
-                <img src={data1.profile.avatar} alt={`Avatar of ${data1.profile.username}`} className="h-full w-full object-cover" onError={() => setAvatar1Failed(true)} />
+                <img src={data1.profile.avatar} alt={`Avatar of ${data1.profile.username}`} className="h-full w-full object-cover" loading="lazy" onError={() => setAvatar1Failed(true)} />
               ) : (
                 <span className="font-sans font-bold text-xs">{initials1}</span>
               )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[8px] font-bold bg-pixel-red/10 text-pixel-red dark:bg-pixel-red/20 uppercase tracking-wide">
+                <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[7px] sm:text-[8px] font-bold bg-pixel-red/10 text-pixel-red dark:bg-pixel-red/20 uppercase tracking-wide">
                   {data1.platform === 'lichess' ? 'Lichess' : 'Chess.com'}
                 </span>
-                <h2 className="font-sans text-[14px] leading-tight font-bold truncate">
+                <h2 className="font-sans text-[13px] sm:text-[14px] leading-tight font-bold truncate">
                   {data1.profile.name || data1.profile.username}
                 </h2>
               </div>
@@ -193,7 +195,7 @@ export default function ComparisonCard({
           </div>
 
           {/* VS badge in center */}
-          <div className="flex flex-row md:flex-col items-center gap-2 shrink-0 justify-center">
+          <div className="flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 justify-center min-w-0">
             <div className="h-7 w-7 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center font-black text-[9px] shadow-sm select-none vs-glow shrink-0">
               VS
             </div>
@@ -205,31 +207,31 @@ export default function ComparisonCard({
           </div>
 
           {/* Player 2 details */}
-          <div className="flex items-center gap-3 min-w-0 flex-1 border-r-4 border-r-pixel-green pr-2.5 md:border-r-0 md:pr-0 md:justify-end md:text-right">
-            <div className="flex md:flex-row-reverse items-center gap-3 min-w-0 w-full justify-start md:justify-start">
-              <div className="relative grid place-items-center h-10 w-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-green overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 border-l-4 border-l-pixel-green pl-2.5 sm:border-l-0 sm:pl-0 sm:justify-end sm:text-right">
+            <div className="flex sm:flex-row-reverse items-center gap-3 min-w-0 w-full justify-start">
+              <div className="relative grid place-items-center h-9 w-9 sm:h-10 sm:w-10 min-h-[2.25rem] sm:min-h-[2.5rem] min-w-[2.25rem] sm:min-w-[2.5rem] rounded-full bg-chip dark:bg-chip-dark border border-pixel-green overflow-hidden shrink-0 transition-transform duration-300 ease-out hover:scale-105">
                 {data2.profile.avatar && !avatar2Failed ? (
-                  <img src={data2.profile.avatar} alt={`Avatar of ${data2.profile.username}`} className="h-full w-full object-cover" onError={() => setAvatar2Failed(true)} />
+                  <img src={data2.profile.avatar} alt={`Avatar of ${data2.profile.username}`} className="h-full w-full object-cover" loading="lazy" onError={() => setAvatar2Failed(true)} />
                 ) : (
                   <span className="font-sans font-bold text-xs">{initials2}</span>
                 )}
               </div>
               <div className="min-w-0">
-                <div className="flex md:flex-row-reverse items-center gap-1.5 flex-wrap">
-                  <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[8px] font-bold bg-pixel-green/10 text-pixel-green dark:bg-pixel-green/20 uppercase tracking-wide">
+                <div className="flex sm:flex-row-reverse items-center gap-1.5 flex-wrap">
+                  <span className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[7px] sm:text-[8px] font-bold bg-pixel-green/10 text-pixel-green dark:bg-pixel-green/20 uppercase tracking-wide">
                     {data2.platform === 'lichess' ? 'Lichess' : 'Chess.com'}
                   </span>
-                  <h2 className="font-sans text-[14px] leading-tight font-bold truncate">
+                  <h2 className="font-sans text-[13px] sm:text-[14px] leading-tight font-bold truncate">
                     {data2.profile.name || data2.profile.username}
                   </h2>
                 </div>
-                <div className="mt-0.5 flex md:flex-row-reverse items-center gap-2 text-[10px] text-muted dark:text-muted-dark flex-wrap">
+                <div className="mt-0.5 flex sm:flex-row-reverse items-center gap-2 text-[10px] text-muted dark:text-muted-dark flex-wrap">
                   <span>@{data2.profile.username}</span>
                   <span className="text-muted/40">•</span>
                   <span className="font-bold text-ink dark:text-ink-dark">Peak {data2.primary.peak} / Live {r2}</span>
                 </div>
                 {data2.insights?.style && (
-                  <div className="mt-1 flex md:justify-end">
+                  <div className="mt-1 flex sm:justify-end">
                     <StyleBadge style={data2.insights.style} sampleSize={data2.insights.sampleSize} compact />
                   </div>
                 )}
@@ -243,17 +245,6 @@ export default function ComparisonCard({
           {/* Matchup heading summary */}
           <div className="flex items-center justify-between gap-4 pb-2 border-b-2 border-line/50 dark:border-line-dark/50">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted dark:text-muted-dark truncate min-w-0">Matchup Details</span>
-            
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <div className="h-7 w-7 rounded-full bg-ink text-canvas dark:bg-ink-dark dark:text-canvas-dark border-2 border-line dark:border-line-dark grid place-items-center font-black text-[9px] shadow-sm select-none vs-glow shrink-0">
-                VS
-              </div>
-              {ratingDelta > 0 && (
-                <span className="text-[9px] font-extrabold text-accent bg-accent/10 rounded px-1.5 py-0.5 uppercase tracking-wider whitespace-nowrap">
-                  Δ {ratingDelta} pts
-                </span>
-              )}
-            </div>
           </div>
 
           {/* Tab selection controls */}

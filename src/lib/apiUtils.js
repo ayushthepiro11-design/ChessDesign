@@ -80,7 +80,9 @@ export async function normalizeError(error, platform, username) {
     try {
       bodyText = await error.text();
       bodyJson = JSON.parse(bodyText);
-    } catch (e) {}
+    } catch (e) {
+      bodyJson = null;
+    }
 
     let message = `Failed to fetch data from ${platform} (HTTP Status ${status})`;
     let code = 'API_ERROR';
@@ -362,7 +364,9 @@ export class PersistentCache {
           const relativePath = url.pathname + url.search + url.hash;
           return trimmed.startsWith('/') ? relativePath : relativePath.slice(1);
         }
-      } catch (e) {}
+      } catch (e) {
+        return trimmed;
+      }
     }
     return trimmed;
   }
@@ -425,7 +429,9 @@ export class PersistentCache {
       } else {
         try {
           this.storage.setItem(fullKey, updatedDataStr);
-        } catch (e) {}
+        } catch (e) {
+          this.memoryFallback.set(fullKey, updatedDataStr);
+        }
       }
       return envelope.value;
     } catch (e) {
@@ -457,7 +463,10 @@ export class PersistentCache {
     const fullKey = this.prefix + normKey;
     try {
       this.storage.removeItem(fullKey);
-    } catch (e) {}
+    } catch (e) {
+      this.memoryFallback.delete(fullKey);
+      return;
+    }
     this.memoryFallback.delete(fullKey);
   }
 
@@ -568,7 +577,9 @@ async function unwrapProxyResponse(response, proxyUrl) {
           headers
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      return response;
+    }
   }
   return response;
 }
@@ -660,7 +671,9 @@ export async function fetchWithRetry(url, options = {}) {
           isProxy: true,
           originalProxyConfig: p
         });
-      } catch (e) {}
+      } catch (e) {
+        continue
+      }
     }
   }
 
@@ -717,7 +730,9 @@ export async function fetchWithRetry(url, options = {}) {
               proxyUsed: isProxy,
               originalProxyConfig
             });
-          } catch (e) {}
+    } catch (e) {
+      bodyJson = null;
+    }
         }
         await sleep(delay, signal);
       }

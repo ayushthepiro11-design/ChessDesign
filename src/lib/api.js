@@ -160,7 +160,9 @@ async function fetchChessCom(username, onProgress, force, signal) {
         const norm = validateAndNormalizeGame(g, 'chess.com', clean)
         processedGames.push(norm)
         if (processedGames.length >= RECENT_GAMES_LIMIT) break
-      } catch (e) {}
+      } catch (e) {
+        continue
+      }
     }
 
     const gamesToUse = processedGames.slice(0, RECENT_GAMES_LIMIT)
@@ -329,7 +331,9 @@ async function fetchLichess(username, onProgress, force, signal) {
           counts.set(g.openingName, (counts.get(g.openingName) || 0) + 1)
         }
         normalizedGames.push(g)
-      } catch (e) {}
+      } catch (e) {
+        continue
+      }
     }
 
     if (counts.size) {

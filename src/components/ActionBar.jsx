@@ -14,6 +14,7 @@ export default function ActionBar({ data, data2, isCompare, cardRef, isDark }) {
   if (!data) return null
 
   const shareUrl = (() => {
+    if (typeof window === 'undefined') return ''
     const sp = new URLSearchParams()
     sp.set('p', data.platform)
     sp.set('u', data.profile.username)
@@ -87,6 +88,8 @@ export default function ActionBar({ data, data2, isCompare, cardRef, isDark }) {
   }
 
   const handleShare = async () => {
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return
+
     let text = ''
     if (isCompare && data2) {
       text = `Chess match-up! ♟\n\n@${data.profile.username} (${data.primary.rating} ${data.primary.label}) vs @${data2.profile.username} (${data2.primary.rating} ${data2.primary.label})`

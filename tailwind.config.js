@@ -6,10 +6,10 @@ export default {
     extend: {
       fontFamily: {
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        pixel: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        mono: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        silk: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        serif: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        pixel: ['"Press Start 2P"', 'system-ui', 'sans-serif'],
+        mono: ['"VT323"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        silk: ['"Silkscreen"', 'system-ui', 'sans-serif'],
+        serif: ['Georgia', 'ui-serif', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
       },
       colors: {
         canvas: {
