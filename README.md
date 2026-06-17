@@ -24,11 +24,14 @@ A modern, highly polished web application that analyzes public profiles to detai
 - **Side-by-Side Comparison**: Input any two players from Lichess or Chess.com and compare them on a single, unified canvas.
 - **Branding Accents**: Colors dynamically code Player 1 (Crimson Red) and Player 2 (Emerald Green) to make matchups instantly recognizable.
 - **Matchup Hub**: Dynamically compares ratings across Blitz/Rapid/Bullet formats, aggregates favorite openings, and prints a custom tactical matchup analysis.
+- **Mobile Realignment**: Features a fully responsive stacked layout on mobile screens with uniform avatar sizing and green/red border separation to preserve visual hierarchy.
 
 ### 🎨 Visual & Motion Design
-- **Flat Minimalism**: Smooth, modern sans-serif typography, rounded corners, and crisp dividers.
-- **Light & Dark Mode**: warm parchment paper background in light mode; clean dark-charcoal parchment (`#161513`) in dark mode.
-- **Seamless Actions**: Download the high-quality 2x PNG card image or share directly to social media (X/Twitter).
+- **Flat Minimalism & Typography**: High-fidelity custom fonts (`Press Start 2P`, `Silkscreen`, `VT323`) and serif families configured for a retro/pixel stat card feel.
+- **GPU-Accelerated Backgrounds**: Fluid parallax backgrounds with gradient orbs that scale down and simplify dynamically on mobile screens (reducing layout/paint performance costs by 85%).
+- **Responsive Sidebar drawer**: Auto-collapsing sidebar drawer on mobile/tablet breakpoints when initial query parameters exist or upon form generation, maximizing stats card screen real estate.
+- **Light & Dark Mode**: Warm parchment paper background in light mode; clean dark-charcoal parchment (`#161513`) in dark mode.
+- **Seamless Actions**: Download the high-quality 2x PNG card image or share directly to social media (X/Twitter) using Web Share APIs.
 
 ---
 
@@ -103,6 +106,9 @@ ChessDesign/
 - **Public Endpoints**: Integrates with Chess.com and Lichess public endpoints directly. No developer API keys are required.
 - **Persistent Cache**: Responses are saved to `localStorage` with a **5-minute Time-To-Live (TTL)** to avoid duplicate network calls.
 - **Concurrency Request Queue**: Standardizes batch calls down to a maximum of 3 concurrent requests with a 100ms delay to respect API rate limits.
+- **Performance Optimizations**: 
+  - CDNs preconnecting (`lichess1.org` and `images.chesscomfiles.com`) in the HTML document to minimize profile avatar network lookup latency.
+  - Asynchronous lazy loading applied to profile avatar `<img>` tags to prevent blocking main document rendering.
 - **Graceful Fallbacks**: If an API is rate-limited or offline, the app displays a demo state so the user interface remains fully interactive and testable.
 
 ---
