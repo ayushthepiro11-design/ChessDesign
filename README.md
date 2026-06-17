@@ -4,7 +4,6 @@
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind--CSS-3.x-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Framer Motion](https://img.shields.io/badge/Framer--Motion-11.x-FF00C1?style=flat-square&logo=framer&logoColor=white)](https://www.framer.com/motion/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 A modern, highly polished web application that analyzes public profiles to detail comprehensive performance statistics, playstyle insights, and active trends, and turns any public **Chess.com** or **Lichess** profile into a beautiful, downloadable infographic stats card. The UI/UX is built with flat, minimalistic elements inspired by the **Chess.com design system**, featuring fluid spring transitions and a comprehensive set of performance metrics.
 
@@ -111,8 +110,4 @@ ChessDesign/
   - Asynchronous lazy loading applied to profile avatar `<img>` tags to prevent blocking main document rendering.
 - **Graceful Fallbacks**: If an API is rate-limited or offline, the app displays a demo state so the user interface remains fully interactive and testable.
 
----
 
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.

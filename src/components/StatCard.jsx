@@ -374,7 +374,7 @@ const OverviewTab = React.memo(function OverviewTab({ data, onHover }) {
       {/* Streak and opening statistics cells. */}
       <Section delay={120}>
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between gap-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-pixel-yellow/50 hover:shadow-sm">
+          <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between gap-3 transition-all duration-200 ease-out hover:border-pixel-yellow/50 hover:shadow-sm">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
                 <Flame className="h-3 w-3 text-pixel-yellow shrink-0" />
@@ -396,7 +396,7 @@ const OverviewTab = React.memo(function OverviewTab({ data, onHover }) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between gap-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-pixel-red/50 hover:shadow-sm">
+          <div className="rounded-xl border border-line dark:border-line-dark p-2.5 flex items-center justify-between gap-3 transition-all duration-200 ease-out hover:border-pixel-red/50 hover:shadow-sm">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
                 <Spark className="h-3 w-3 text-pixel-red shrink-0" />
@@ -605,7 +605,7 @@ const Stat = React.memo(function Stat({ label, value, sub, icon, emphasis = fals
       : 'text-muted dark:text-muted-dark'
   return (
     <motion.div
-      whileHover={reduce ? {} : { y: -1, transition: { type: 'spring', stiffness: 500, damping: 20 } }}
+      whileHover={{}}
       className={[
         'rounded-lg border border-line dark:border-line-dark py-1 px-2.5 min-w-0 flex items-center gap-2',
         'transition-all duration-200 ease-out',
@@ -644,7 +644,7 @@ const RatioCell = React.memo(function RatioCell({ label, value, pct, tone, delay
       : 'bg-amber-500 dark:bg-amber-400'
   return (
     <div
-      className="rounded-lg border border-line dark:border-line-dark px-2 py-1 flex items-center justify-between gap-1.5 hover:-translate-y-0.5 transition-all duration-200 ease-out"
+      className="rounded-lg border border-line dark:border-line-dark px-2 py-1 flex items-center justify-between gap-1.5 transition-all duration-200 ease-out"
       style={{ animation: `punchIn 400ms cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms backwards` }}
     >
       <div className="min-w-0">

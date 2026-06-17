@@ -5,7 +5,7 @@ import { Bolt, Logo, Moon, Search, Sun } from './Icons'
  * Sidebar control panel component.
  * Exposes parameters for profile selection, platform search, and app configurations.
  */
-export default function Sidebar({
+export default React.memo(function Sidebar({
   platform,
   setPlatform,
   username,
@@ -408,7 +408,7 @@ export default function Sidebar({
       </div>
     </aside>
   )
-}
+})
 
 const Label = React.memo(function Label({ children, htmlFor }) {
   return (
