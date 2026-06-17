@@ -25,7 +25,7 @@ const LABELS = {
 }
 
 export default function GeneratingFX({ events = [] }) {
-  const reduce = useSafeReducedMotion()
+  const reduce = false
   const [fallback, setFallback] = useState(0)
   useEffect(() => {
     const id = window.setInterval(() => setFallback((s) => (s + 1) % DEFAULT_STEPS.length), 1100)
