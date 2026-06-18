@@ -515,7 +515,7 @@ export default function App() {
           setIsSidebarOpen={setIsSidebarOpen}
         />
 
-        <div className="px-5 sm:px-8 lg:px-12 py-8 lg:py-12">
+        <div className="px-4 min-[380px]:px-5 sm:px-8 lg:px-12 py-8 lg:py-12">
           <div className="max-w-3xl mx-auto">
             {/* Header section containing greeting and subtexts */}
             <div className="mb-8 lg:mb-10 space-y-3">

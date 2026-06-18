@@ -29,7 +29,7 @@ const TONE = {
 export default function TimeControlGrid({ perFormat = [], primaryKey, onHover }) {
   if (!perFormat.length) return null
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 min-w-0 w-full">
       {perFormat.map((f, i) => {
         const isPrimary = f.key === primaryKey
         const total = (f.record?.win || 0) + (f.record?.loss || 0) + (f.record?.draw || 0)
@@ -65,7 +65,6 @@ export default function TimeControlGrid({ perFormat = [], primaryKey, onHover })
               'min-w-0',
               'relative rounded-xl border p-2 cursor-default',
               'transition-all duration-200 ease-out',
-              'hover:-translate-y-0.5',
               tone.shadow,
               tone.border,
               isPrimary
@@ -74,7 +73,7 @@ export default function TimeControlGrid({ perFormat = [], primaryKey, onHover })
             ].join(' ')}
             style={{ animation: `punchIn 400ms cubic-bezier(0.2, 0.8, 0.2, 1) ${i * 50}ms backwards` }}
           >
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between gap-1.5 min-w-0">
               <div className="min-w-0">
                 <div className="flex items-center gap-1 text-[9px] min-[400px]:text-[10px] font-bold uppercase tracking-[0.08em] text-muted dark:text-muted-dark">
                   {isPrimary && (
@@ -86,7 +85,7 @@ export default function TimeControlGrid({ perFormat = [], primaryKey, onHover })
                   <AnimatedNumber value={f.rating} />
                 </div>
               </div>
-              <div className="text-right shrink-0 flex flex-col items-end gap-0.5 text-[9px] text-muted dark:text-muted-dark tabular-nums font-medium">
+              <div className="text-left min-[380px]:text-right shrink-0 flex flex-col items-start min-[380px]:items-end gap-0.5 text-[9px] text-muted dark:text-muted-dark tabular-nums font-medium">
                 <div className="flex items-center gap-1">
                   <span>peak {f.peak}</span>
                   <span className="text-[10px] leading-none shrink-0">{ICONS[f.label] || '♟'}</span>

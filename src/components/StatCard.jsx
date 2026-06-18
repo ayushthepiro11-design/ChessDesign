@@ -187,7 +187,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
           )}
 
           {/* Main rating records and performance indicators. */}
-          <div className="flex items-center gap-1.5 relative z-10 shrink-0">
+          <div className="flex flex-wrap items-center gap-1.5 relative z-10 min-w-0">
             <Stat
               label="Peak"
               value={<AnimatedNumber value={data.primary.peak} />}

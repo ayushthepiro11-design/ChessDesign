@@ -72,7 +72,7 @@ export default function StatCardSkeleton({ isCompare = false }) {
             </div>
 
             {/* Stats cells row skeleton */}
-            <div className="flex items-center gap-1.5 relative z-10 shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 relative z-10 min-w-0">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="rounded-lg border border-line dark:border-line-dark py-1 px-2.5 flex items-center gap-2 min-w-[70px]">
                   <div className="h-4 w-7 rounded skeleton shrink-0" />

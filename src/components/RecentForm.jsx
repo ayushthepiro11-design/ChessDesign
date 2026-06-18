@@ -20,7 +20,7 @@ export default function RecentForm({ form = [], size = 'md' }) {
             className={[
               dot,
               'inline-flex items-center justify-center rounded-md font-mono font-bold',
-              'transition-all duration-150 ease-out hover:scale-110 hover:-translate-y-0.5 cursor-default',
+              'transition-all duration-150 ease-out hover:scale-110 cursor-default',
               'shadow-sm hover:shadow',
               r === 'W'
                 ? 'bg-emerald-500 text-white dark:bg-emerald-450 dark:text-emerald-950'
