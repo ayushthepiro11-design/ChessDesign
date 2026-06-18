@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 /**
  * FirstMove — distribution of the user's first move, as a horizontal
  * stacked bar plus a small legend.
@@ -29,7 +31,7 @@ const LABEL_BY_MOVE = {
   other: 'Other',
 }
 
-export default function FirstMove({ data }) {
+export default memo(function FirstMove({ data }) {
   if (!data || !data.length) return null
   const total = data.reduce((a, m) => a + m.count, 0)
   if (!total) return null
@@ -96,4 +98,4 @@ export default function FirstMove({ data }) {
       )}
     </div>
   )
-}
+})

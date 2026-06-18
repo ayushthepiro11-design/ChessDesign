@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 /**
  * StyleBadge — the signature archetype banner that sits under the profile.
  * Reads `data.style` and renders a chunky 3D card with a chess-piece glyph,
@@ -6,7 +8,7 @@
  * The whole card has a "punchIn" entrance and a small "boing" hover lift
  * to keep the cartoonish feel.
  */
-export default function StyleBadge({ style, sampleSize = 0, compact = false }) {
+export default memo(function StyleBadge({ style, sampleSize = 0, compact = false }) {
   if (!style) return null
 
   const { archetype, icon, tagline, tone = 'subtle' } = style
@@ -126,4 +128,4 @@ export default function StyleBadge({ style, sampleSize = 0, compact = false }) {
       </div>
     </div>
   )
-}
+})

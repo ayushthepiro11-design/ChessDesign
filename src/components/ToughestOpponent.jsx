@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 /**
  * ToughestOpponent — the highest-rated opponent the user has faced in the
  * sample, with a W/L/D record against them.
@@ -12,7 +14,7 @@ function recordTone(w, l) {
   return { tone: 'even', color: 'text-amber-700 dark:text-amber-300' }
 }
 
-export default function ToughestOpponent({ data, userRating }) {
+export default memo(function ToughestOpponent({ data, userRating }) {
   if (!data) return null
   if (!data.username) return null
   // Only show if the opponent is actually meaningfully stronger. We
@@ -85,4 +87,4 @@ export default function ToughestOpponent({ data, userRating }) {
       </div>
     </Wrapper>
   )
-}
+})

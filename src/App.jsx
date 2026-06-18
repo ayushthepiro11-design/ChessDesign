@@ -140,7 +140,7 @@ export default function App() {
     window.localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  const toggleTheme = useCallback(() => setTheme((t) => (t === 'dark' ? 'light' : 'dark')), [])
 
   // Clear statistics and errors when the primary platform configuration changes.
   useEffect(() => {
@@ -363,7 +363,7 @@ export default function App() {
     successTimerRef.current = window.setTimeout(() => setJustGenerated(false), 1800)
   }, [queryClient])
 
-  const handleGenerate = (optUsername = null, optPlatform = null) => {
+  const handleGenerate = useCallback((optUsername = null, optPlatform = null) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsSidebarOpen(false)
     }
@@ -373,9 +373,9 @@ export default function App() {
       data.profile.username.toLowerCase() === targetUsername.trim().toLowerCase() &&
       data.platform === targetPlatform
     runFetch({ force: isSameUser, isRefresh: false, customUsername: targetUsername, customPlatform: targetPlatform })
-  }
+  }, [data, username, platform, runFetch])
 
-  const handleGenerateCompare = (optUsername = null, optPlatform = null, optUsername2 = null, optPlatform2 = null) => {
+  const handleGenerateCompare = useCallback((optUsername = null, optPlatform = null, optUsername2 = null, optPlatform2 = null) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsSidebarOpen(false)
     }
@@ -396,9 +396,9 @@ export default function App() {
       customUsername2: targetUsername2,
       customPlatform2: targetPlatform2
     })
-  }
+  }, [data, data2, username, platform, username2, platform2, runFetch])
 
-  const handleRefresh = () => runFetch({ force: true, isRefresh: true })
+  const handleRefresh = useCallback(() => runFetch({ force: true, isRefresh: true }), [runFetch])
 
   useEffect(() => () => {
     if (successTimerRef.current) window.clearTimeout(successTimerRef.current)

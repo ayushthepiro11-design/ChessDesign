@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, memo } from 'react'
 import { useIsDark } from '../lib/useIsDark'
 
 const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {
@@ -25,7 +25,7 @@ const COLORS = {
   empty:  { light: 'rgba(232, 229, 221, 0.40)', dark: 'rgba(44, 42, 38, 0.40)' },
 }
 
-export default function TimeOfDay({ hourlyPlay, peakHour, isDark: isDarkProp, onHover }) {
+export default memo(function TimeOfDay({ hourlyPlay, peakHour, isDark: isDarkProp, onHover }) {
   const systemIsDark = useIsDark()
   const isDark = isDarkProp !== undefined ? isDarkProp : systemIsDark
   const clipId = useId()
@@ -133,4 +133,4 @@ export default function TimeOfDay({ hourlyPlay, peakHour, isDark: isDarkProp, on
       </svg>
     </div>
   )
-}
+})

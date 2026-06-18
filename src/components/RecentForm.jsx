@@ -1,7 +1,9 @@
+import { memo } from 'react'
+
 /**
  * Component to display historical match outcome status logs as custom badges.
  */
-export default function RecentForm({ form = [], size = 'md' }) {
+export default memo(function RecentForm({ form = [], size = 'md' }) {
   if (!form.length) {
     return <span className="text-[12px] text-muted dark:text-muted-dark">No recent games</span>
   }
@@ -50,4 +52,4 @@ export default function RecentForm({ form = [], size = 'md' }) {
       </div>
     </div>
   )
-}
+})

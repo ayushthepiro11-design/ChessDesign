@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { formatPercent } from '../lib/format'
 import { useIsDark } from '../lib/useIsDark'
 
@@ -7,7 +8,7 @@ const COLORS = {
   losses: { light: '#e11d48', dark: '#fb7185' },
 }
 
-export default function BeatingTheOdds({ data, isDark: isDarkProp }) {
+export default memo(function BeatingTheOdds({ data, isDark: isDarkProp }) {
   const systemIsDark = useIsDark()
   const isDark = isDarkProp !== undefined ? isDarkProp : systemIsDark
   if (!data) return null
@@ -72,4 +73,4 @@ export default function BeatingTheOdds({ data, isDark: isDarkProp }) {
       </svg>
     </div>
   )
-}
+})

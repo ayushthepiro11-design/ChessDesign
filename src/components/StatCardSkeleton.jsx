@@ -1,8 +1,10 @@
+import { memo } from 'react'
+
 /**
  * StatCardSkeleton — the placeholder shown before the user generates a card.
  * It mirrors the new compact horizontal top-header and bottom-tab landscape geometry.
  */
-export default function StatCardSkeleton({ isCompare = false }) {
+export default memo(function StatCardSkeleton({ isCompare = false }) {
   return (
     <div className={[
       'max-w-full rounded-2xl overflow-hidden bg-canvas dark:bg-canvas-dark border border-line dark:border-line-dark shadow-card dark:shadow-cardDark',
@@ -178,4 +180,4 @@ export default function StatCardSkeleton({ isCompare = false }) {
       </div>
     </div>
   )
-}
+})

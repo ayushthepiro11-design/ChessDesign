@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, memo } from 'react'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { useSafeReducedMotion } from '../lib/useSafeReducedMotion'
 
@@ -6,7 +6,7 @@ import { useSafeReducedMotion } from '../lib/useSafeReducedMotion'
  * AnimatedNumber — renders a spring-animated count-up integer with tabular-nums.
  * Uses Framer Motion's useSpring for buttery spring physics instead of RAF.
  */
-export default function AnimatedNumber({ value, className = '' }) {
+export default memo(function AnimatedNumber({ value, className = '' }) {
   const reduce = useSafeReducedMotion()
   
   if (reduce) {
@@ -31,4 +31,4 @@ export default function AnimatedNumber({ value, className = '' }) {
       {display}
     </motion.span>
   )
-}
+})

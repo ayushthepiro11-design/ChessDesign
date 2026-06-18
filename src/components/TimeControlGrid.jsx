@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { formatPercent } from '../lib/format'
 import AnimatedNumber from './AnimatedNumber'
 
@@ -26,7 +27,7 @@ const TONE = {
   UltraBullet: { shadow: 'hover:shadow-[0_10px_22px_-8px_rgba(244,63,94,0.55)]', border: 'hover:border-rose-400/70' },
 }
 
-export default function TimeControlGrid({ perFormat = [], primaryKey, onHover }) {
+export default memo(function TimeControlGrid({ perFormat = [], primaryKey, onHover }) {
   if (!perFormat.length) return null
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 min-w-0 w-full">
@@ -105,4 +106,4 @@ export default function TimeControlGrid({ perFormat = [], primaryKey, onHover })
       })}
     </div>
   )
-}
+})

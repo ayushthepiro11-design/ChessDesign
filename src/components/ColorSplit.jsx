@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { compactNumber, formatPercent } from '../lib/format'
 
 /**
@@ -10,7 +11,7 @@ import { compactNumber, formatPercent } from '../lib/format'
  *
  * Falls back gracefully if either side has 0 games.
  */
-export default function ColorSplit({ data }) {
+export default memo(function ColorSplit({ data }) {
   if (!data) return null
   const { white, black } = data
   if (!white?.games && !black?.games) return null
@@ -80,7 +81,7 @@ export default function ColorSplit({ data }) {
       </div>
     </div>
   )
-}
+})
 
 function SideCell({ side, split, delay = 0 }) {
   if (!split || !split.games) {

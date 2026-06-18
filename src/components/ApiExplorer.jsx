@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 
 /**
  * ApiExplorer — collapsible JSON viewer showing the raw API response and
  * the chain of calls that were made. Built for the curious.
  */
-export default function ApiExplorer({ data }) {
+export default memo(function ApiExplorer({ data }) {
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState('data')
 
@@ -97,7 +97,7 @@ export default function ApiExplorer({ data }) {
       </div>
     </section>
   )
-}
+})
 
 function redact(d) {
   // Keep it readable but trim noisy fields

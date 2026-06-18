@@ -14,7 +14,7 @@ const FACES = [
   { key: 'matchup',    label: 'Matchup' },
 ]
 
-export default function ComparisonCard({
+export default React.memo(function ComparisonCard({
   data1,
   data2,
   cardRef: externalCardRef,
@@ -292,7 +292,7 @@ export default function ComparisonCard({
       <ArrowButton direction="next" onClick={() => goToStable(face + 1)} disabled={face === FACES.length - 1} />
     </div>
   )
-}
+})
 
 /* ----------------------------------------------------------------------------
  * 1. UI Navigation Components

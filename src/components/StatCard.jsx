@@ -21,7 +21,7 @@ const FACES = [
   { key: 'insights',   label: 'Insights' },
 ]
 
-export default function StatCard({ data, cardRef: externalCardRef, source, onRefresh, isRefreshing, theme, isDark }) {
+export default React.memo(function StatCard({ data, cardRef: externalCardRef, source, onRefresh, isRefreshing, theme, isDark }) {
   const localCardRef = useRef(null)
   const cardRef = externalCardRef || localCardRef
   const innerRef = useRef(null)
@@ -286,7 +286,7 @@ export default function StatCard({ data, cardRef: externalCardRef, source, onRef
       <ArrowButton direction="next" onClick={() => goToStable(face + 1)} disabled={face === FACES.length - 1} />
     </div>
   )
-}
+})
 
 /* ----------------------------------------------------------------------------
  * 1. UI Navigation Components

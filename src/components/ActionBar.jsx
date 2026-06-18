@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { toPng } from 'html-to-image'
 import toast from 'react-hot-toast'
-import { Download, Share, XLogo } from './Icons'
+import { Download, Share } from './Icons'
 
 /**
  * ActionBar — the icon-and-text button group that appears below the card.
  * Download uses html-to-image (foreignObject) to snapshot the card;
  * Share uses Web Share API when available, falls back to Twitter intent.
  */
-export default function ActionBar({ data, data2, isCompare, cardRef, isDark }) {
+export default memo(function ActionBar({ data, data2, isCompare, cardRef, isDark }) {
   const [downloading, setDownloading] = useState(false)
 
   if (!data) return null
@@ -156,4 +156,4 @@ export default function ActionBar({ data, data2, isCompare, cardRef, isDark }) {
       </div>
     </div>
   )
-}
+})

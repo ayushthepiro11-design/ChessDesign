@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, memo } from 'react'
 import confetti from 'canvas-confetti'
 
 /**
@@ -7,7 +7,7 @@ import confetti from 'canvas-confetti'
  */
 const COLORS = ['#C96442', '#1F1E1B', '#E8B23A', '#7BAE7F', '#D67A5C', '#2C2A26', '#5A8FBF', '#D17BB0']
 
-export default function Confetti({ trigger = 0 }) {
+export default memo(function Confetti({ trigger = 0 }) {
   const prevTrigger = useRef(0)
 
   // Clean up the global canvas-confetti canvas on unmount
@@ -57,4 +57,4 @@ export default function Confetti({ trigger = 0 }) {
 
   // canvas-confetti renders to a global <canvas>, no DOM nodes needed
   return null
-}
+})

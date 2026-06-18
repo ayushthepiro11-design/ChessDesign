@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 
 /**
  * LiveBadge — chunky "LIVE · 3s ago" pill with a bouncy refresh button.
  * The dot has a satisfying "ping" loop, and the whole pill hops on mount.
  */
-export default function LiveBadge({ fetchedAt, onRefresh, isRefreshing, source = 'api' }) {
+export default memo(function LiveBadge({ fetchedAt, onRefresh, isRefreshing, source = 'api' }) {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 15_000)
@@ -72,4 +72,4 @@ export default function LiveBadge({ fetchedAt, onRefresh, isRefreshing, source =
       )}
     </div>
   )
-}
+})

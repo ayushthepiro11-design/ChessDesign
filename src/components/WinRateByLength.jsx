@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, memo } from 'react'
 import { formatPercent } from '../lib/format'
 import { useIsDark } from '../lib/useIsDark'
 
@@ -15,7 +15,7 @@ const COLORS = {
   losses: { light: '#e11d48', dark: '#fb7185' },
 }
 
-export default function WinRateByLength({ data, isDark: isDarkProp, onHover }) {
+export default memo(function WinRateByLength({ data, isDark: isDarkProp, onHover }) {
   const systemIsDark = useIsDark()
   const isDark = isDarkProp !== undefined ? isDarkProp : systemIsDark
   const baseId = useId()
@@ -146,4 +146,4 @@ export default function WinRateByLength({ data, isDark: isDarkProp, onHover }) {
       </svg>
     </div>
   )
-}
+})
