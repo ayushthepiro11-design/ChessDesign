@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useSafeReducedMotion } from '../lib/useSafeReducedMotion'
 
 /**
  * GeneratingFX — chess-themed loading state with Framer Motion animations.

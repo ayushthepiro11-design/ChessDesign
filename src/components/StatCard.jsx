@@ -596,7 +596,6 @@ function Bar({ width, delay, className, onMouseEnter, onMouseMove, onMouseLeave 
 }
 
 const Stat = React.memo(function Stat({ label, value, sub, icon, emphasis = false, subTone = 'neutral' }) {
-  const reduce = useSafeReducedMotion()
   const subColor =
     subTone === 'up'
       ? 'text-emerald-700 dark:text-emerald-300'
