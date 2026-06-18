@@ -730,9 +730,9 @@ export async function fetchWithRetry(url, options = {}) {
               proxyUsed: isProxy,
               originalProxyConfig
             });
-    } catch (e) {
-      bodyJson = null;
-    }
+          } catch (e) {
+            // Ignore callback failures
+          }
         }
         await sleep(delay, signal);
       }
@@ -1122,15 +1122,17 @@ export async function* dynamicMonthLookbackGenerator({
         
         const task = async () => {
           try {
+            const t0 = performance.now();
             const res = await fetchWithRetry(url, {
               ...fetchOptions,
               signal: monthController.signal,
               proxies
             });
-            if (res.status === 404) return { success: true, games: [], year: targetYear, month: targetMonth };
+            const latencyMs = Math.round(performance.now() - t0);
+            if (res.status === 404) return { success: true, games: [], year: targetYear, month: targetMonth, latencyMs };
             if (!res.ok) throw new Error(`HTTP error ${res.status}`);
             const data = await res.json();
-            return { success: true, games: data.games || [], year: targetYear, month: targetMonth, res };
+            return { success: true, games: data.games || [], year: targetYear, month: targetMonth, res, latencyMs };
           } catch (err) {
             if (err.name === 'AbortError') throw err;
             return { success: false, error: err, year: targetYear, month: targetMonth, games: [] };
@@ -1179,7 +1181,7 @@ export async function* dynamicMonthLookbackGenerator({
         loaded: validGamesCount,
         total: maxGames,
         via: result.res?.url?.includes('chess.com') ? 'direct' : 'proxy',
-        latencyMs: 0
+        latencyMs: result.latencyMs || 0
       });
 
       yield {
@@ -1190,7 +1192,8 @@ export async function* dynamicMonthLookbackGenerator({
         runningTotal: validGamesCount,
         success: result.success,
         error: result.error || null,
-        res: result.res || null
+        res: result.res || null,
+        latencyMs: result.latencyMs || 0
       };
 
       if (validGamesCount >= maxGames) break;

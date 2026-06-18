@@ -87,21 +87,27 @@ async function fetchChessCom(username, onProgress, force, signal) {
   // Fetch user profile information.
   const profileUrl = `https://api.chess.com/pub/player/${encodeURIComponent(clean)}`
   onProgress?.({ label: 'profile', status: 'fetching', url: profileUrl })
+  const tProfile0 = performance.now()
   const profileRes = await requestQueue.add(() => fetchWithRetry(profileUrl, { signal, proxies: PROXIES }))
   if (!profileRes.ok) throw profileRes;
   const rawProfile = await profileRes.json()
   const profile = validateAndNormalizeProfile(rawProfile, 'chess.com', clean)
-  calls.push({ label: 'profile', url: profileRes.url, via: profileRes.url.includes('chess.com') ? 'direct' : 'proxy', latencyMs: 0 })
-  onProgress?.({ label: 'profile', status: 'ok', url: profileUrl, latencyMs: 0, via: 'direct' })
+  const profileLatency = Math.round(performance.now() - tProfile0)
+  const profileVia = profileRes.url.includes('chess.com') ? 'direct' : 'proxy'
+  calls.push({ label: 'profile', url: profileRes.url, via: profileVia, latencyMs: profileLatency })
+  onProgress?.({ label: 'profile', status: 'ok', url: profileUrl, latencyMs: profileLatency, via: profileVia })
 
   // Fetch platform rating statistics.
   const statsUrl = `https://api.chess.com/pub/player/${encodeURIComponent(clean)}/stats`
   onProgress?.({ label: 'stats', status: 'fetching', url: statsUrl })
+  const tStats0 = performance.now()
   const statsRes = await requestQueue.add(() => fetchWithRetry(statsUrl, { signal, proxies: PROXIES }))
   if (!statsRes.ok) throw statsRes;
   const stats = await statsRes.json()
-  calls.push({ label: 'stats', url: statsRes.url, via: statsRes.url.includes('chess.com') ? 'direct' : 'proxy', latencyMs: 0 })
-  onProgress?.({ label: 'stats', status: 'ok', url: statsUrl, latencyMs: 0, via: 'direct' })
+  const statsLatency = Math.round(performance.now() - tStats0)
+  const statsVia = statsRes.url.includes('chess.com') ? 'direct' : 'proxy'
+  calls.push({ label: 'stats', url: statsRes.url, via: statsVia, latencyMs: statsLatency })
+  onProgress?.({ label: 'stats', status: 'ok', url: statsUrl, latencyMs: statsLatency, via: statsVia })
 
   // Fetch recent game archives. Crawls backwards month-by-month until
   // either the lookback limit is reached or we reach the player's join date.
@@ -141,7 +147,7 @@ async function fetchChessCom(username, onProgress, force, signal) {
             label: 'games',
             url: monthResult.res.url,
             via: monthResult.res.url.includes('chess.com') ? 'direct' : 'proxy',
-            latencyMs: 0,
+            latencyMs: monthResult.latencyMs || 0,
             count: monthResult.rawGames.length
           })
         }
@@ -285,6 +291,7 @@ async function fetchLichess(username, onProgress, force, signal) {
   // Fetch user profile information.
   const profileUrl = `https://lichess.org/api/user/${encodeURIComponent(clean)}`
   onProgress?.({ label: 'profile', status: 'fetching', url: profileUrl })
+  const tProfile0 = performance.now()
   const userCall = await requestQueue.add(() => fetchWithRetry(profileUrl, {
     headers: { Accept: 'application/json' },
     signal,
@@ -293,8 +300,10 @@ async function fetchLichess(username, onProgress, force, signal) {
   if (!userCall.ok) throw userCall;
   const userJson = await userCall.json()
   const user = validateAndNormalizeProfile(userJson, 'lichess', clean)
-  calls.push({ label: 'profile', url: userCall.url, via: userCall.url?.includes('lichess.org') ? 'direct' : 'proxy', latencyMs: 0 })
-  onProgress?.({ label: 'profile', status: 'ok', url: profileUrl, latencyMs: 0, via: 'direct' })
+  const profileLatency = Math.round(performance.now() - tProfile0)
+  const profileVia = userCall.url?.includes('lichess.org') ? 'direct' : 'proxy'
+  calls.push({ label: 'profile', url: userCall.url, via: profileVia, latencyMs: profileLatency })
+  onProgress?.({ label: 'profile', status: 'ok', url: profileUrl, latencyMs: profileLatency, via: profileVia })
 
   // Fetch recent game logs using ndjson streaming API.
   let topOpening = null
@@ -306,6 +315,7 @@ async function fetchLichess(username, onProgress, force, signal) {
   try {
     const gamesUrl = `https://lichess.org/api/games/user/${encodeURIComponent(clean)}?max=${RECENT_GAMES_LIMIT}&pgnInJson=false&clocks=false&evals=false&opening=true&literate=false`
     onProgress?.({ label: 'games', status: 'fetching', url: gamesUrl })
+    const tGames0 = performance.now()
     const gamesCall = await requestQueue.add(() => fetchWithRetry(gamesUrl, {
       headers: { Accept: 'application/x-ndjson' },
       signal,
@@ -313,8 +323,10 @@ async function fetchLichess(username, onProgress, force, signal) {
     }))
     if (!gamesCall.ok) throw gamesCall;
     const text = await gamesCall.text()
-    calls.push({ label: 'games', url: gamesCall.url, via: gamesCall.url?.includes('lichess.org') ? 'direct' : 'proxy', latencyMs: 0 })
-    onProgress?.({ label: 'games', status: 'ok', url: gamesUrl, latencyMs: 0, via: 'direct' })
+    const gamesLatency = Math.round(performance.now() - tGames0)
+    const gamesVia = gamesCall.url?.includes('lichess.org') ? 'direct' : 'proxy'
+    calls.push({ label: 'games', url: gamesCall.url, via: gamesVia, latencyMs: gamesLatency })
+    onProgress?.({ label: 'games', status: 'ok', url: gamesUrl, latencyMs: gamesLatency, via: gamesVia })
 
     const counts = new Map()
     const lines = text.split('\n').filter(Boolean)
