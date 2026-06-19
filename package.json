@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",
+    "@vercel/og": "^0.11.1",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.40.0",
     "html-to-image": "^1.11.13",

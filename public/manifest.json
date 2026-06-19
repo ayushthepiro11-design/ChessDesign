@@ -1,0 +1,27 @@
+{
+  "name": "ChessCard",
+  "short_name": "ChessCard",
+  "description": "Turn your Chess.com or Lichess profile into a shareable pixel stat card.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#161513",
+  "theme_color": "#0D0D0D",
+  "orientation": "portrait-primary",
+  "categories": ["games", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/api/og?user=demo&platform=chesscom&rating=2901&mode=blitz&wins=3241&losses=891",
+      "type": "image/jpeg",
+      "sizes": "1200x630",
+      "label": "ChessCard stat card preview"
+    }
+  ]
+}
